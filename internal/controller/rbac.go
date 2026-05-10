@@ -64,8 +64,8 @@ func (r *GatewaySyncReconciler) ensureAgentRoleBinding(ctx context.Context, gs *
 				Name:      rbName,
 				Namespace: gs.Namespace,
 				Labels: map[string]string{
-					labelManagedBy: "stoker-operator",
-					"stoker.io/gatewaysync":        gs.Name,
+					labelManagedBy:          "stoker-operator",
+					"stoker.io/gatewaysync": gs.Name,
 				},
 			},
 			RoleRef: rbacv1.RoleRef{
