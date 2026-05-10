@@ -687,7 +687,7 @@ func (r *GatewaySyncReconciler) ensureMetadataConfigMap(ctx context.Context, gs 
 				Name:      cmName,
 				Namespace: gs.Namespace,
 				Labels: map[string]string{
-					"app.kubernetes.io/managed-by": "stoker-controller",
+					labelManagedBy: "stoker-controller",
 					stokertypes.LabelCRName:        gs.Name,
 				},
 			},
@@ -725,7 +725,7 @@ func (r *GatewaySyncReconciler) ensureGitHubTokenSecret(ctx context.Context, gs 
 				Name:      secretName,
 				Namespace: gs.Namespace,
 				Labels: map[string]string{
-					"app.kubernetes.io/managed-by": "stoker-controller",
+					labelManagedBy: "stoker-controller",
 					stokertypes.LabelCRName:        gs.Name,
 				},
 				Annotations: map[string]string{

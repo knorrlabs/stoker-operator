@@ -22,7 +22,9 @@ import (
 const (
 	// agentClusterRoleName is the fixed name of the agent ClusterRole.
 	// This must match the name in config/rbac/agent_role.yaml and the Helm chart template.
-	agentClusterRoleName = "stoker-agent"
+	agentClusterRoleName  = "stoker-agent"
+	defaultServiceAccount = "default"
+	labelManagedBy        = "app.kubernetes.io/managed-by"
 )
 
 // agentRoleBindingName returns the name for the auto-created RoleBinding.
@@ -42,7 +44,7 @@ func (r *GatewaySyncReconciler) ensureAgentRoleBinding(ctx context.Context, gs *
 	saNames := r.collectServiceAccountsFromPods(ctx, gs)
 	if len(saNames) == 0 {
 		// No matching pods exist yet — use "default" as a baseline subject.
-		saNames = []string{"default"}
+		saNames = []string{defaultServiceAccount}
 	}
 
 	rbName := agentRoleBindingName(gs.Name)
@@ -62,7 +64,7 @@ func (r *GatewaySyncReconciler) ensureAgentRoleBinding(ctx context.Context, gs *
 				Name:      rbName,
 				Namespace: gs.Namespace,
 				Labels: map[string]string{
-					"app.kubernetes.io/managed-by": "stoker-operator",
+					labelManagedBy: "stoker-operator",
 					"stoker.io/gatewaysync":        gs.Name,
 				},
 			},
@@ -130,7 +132,7 @@ func (r *GatewaySyncReconciler) collectServiceAccountsFromPods(ctx context.Conte
 		}
 		sa := pod.Spec.ServiceAccountName
 		if sa == "" {
-			sa = "default"
+			sa = defaultServiceAccount
 		}
 		seen[sa] = true
 	}

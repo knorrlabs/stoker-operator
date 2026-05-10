@@ -29,6 +29,11 @@ import (
 	stokertypes "github.com/ia-eknorr/stoker-operator/pkg/types"
 )
 
+const (
+	gitAccessTokenUser = "x-access-token"
+	defaultProfileName = "default"
+)
+
 // agentVersion is set at build time via ldflags. Falls back to "dev" for local builds.
 var agentVersion = "dev"
 
@@ -294,7 +299,7 @@ func (a *Agent) handleSyncTrigger(ctx context.Context, gitURL string, auth trans
 	// Refresh auth from metadata if GitHub App token was updated by controller.
 	if meta.GitToken != "" {
 		auth = &gogithttp.BasicAuth{
-			Username: "x-access-token",
+			Username: gitAccessTokenUser,
 			Password: meta.GitToken,
 		}
 	}
@@ -408,7 +413,7 @@ func (a *Agent) lookupProfile(meta *Metadata) (*stokertypes.ResolvedProfile, str
 
 	profileName := a.Config.ProfileName
 	if profileName == "" {
-		profileName = "default"
+		profileName = defaultProfileName
 	}
 
 	profile, ok := profiles[profileName]
@@ -762,7 +767,7 @@ func (a *Agent) resolveAuth(meta *Metadata) transport.AuthMethod {
 	// GitHub App: token delivered via metadata ConfigMap.
 	if meta != nil && meta.GitToken != "" {
 		return &gogithttp.BasicAuth{
-			Username: "x-access-token",
+			Username: gitAccessTokenUser,
 			Password: meta.GitToken,
 		}
 	}
@@ -792,7 +797,7 @@ func (a *Agent) resolveFileAuth() transport.AuthMethod {
 	// Token auth.
 	if token := a.Config.GitToken(); token != "" {
 		return &gogithttp.BasicAuth{
-			Username: "x-access-token",
+			Username: gitAccessTokenUser,
 			Password: token,
 		}
 	}

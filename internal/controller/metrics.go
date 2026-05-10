@@ -12,78 +12,82 @@ import (
 
 // Reconcile result label values.
 const (
-	resultSuccess = "success"
-	resultError   = "error"
-	resultRequeue = "requeue"
+	resultSuccess    = "success"
+	resultError      = "error"
+	resultRequeue    = "requeue"
+	metricsNamespace = "stoker"
+	metricsSubsystem = "controller"
+	labelName        = "name"
+	labelNamespace   = "namespace"
 )
 
 var (
 	reconcileDuration = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Namespace: "stoker",
-			Subsystem: "controller",
+			Namespace: metricsNamespace,
+			Subsystem: metricsSubsystem,
 			Name:      "reconcile_duration_seconds",
 			Help:      "Duration of GatewaySync reconciliation in seconds.",
 			Buckets:   prometheus.DefBuckets,
 		},
-		[]string{"name", "namespace"},
+		[]string{labelName, labelNamespace},
 	)
 
 	reconcileTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Namespace: "stoker",
-			Subsystem: "controller",
+			Namespace: metricsNamespace,
+			Subsystem: metricsSubsystem,
 			Name:      "reconcile_total",
 			Help:      "Total number of GatewaySync reconciliations.",
 		},
-		[]string{"name", "namespace", "result"},
+		[]string{labelName, labelNamespace, "result"},
 	)
 
 	refResolveDuration = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Namespace: "stoker",
-			Subsystem: "controller",
+			Namespace: metricsNamespace,
+			Subsystem: metricsSubsystem,
 			Name:      "ref_resolve_duration_seconds",
 			Help:      "Duration of git ref resolution (ls-remote) in seconds.",
 			Buckets:   []float64{0.1, 0.25, 0.5, 1, 2.5, 5, 10, 30},
 		},
-		[]string{"name", "namespace"},
+		[]string{labelName, labelNamespace},
 	)
 
 	gatewaysDiscovered = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Namespace: "stoker",
-			Subsystem: "controller",
+			Namespace: metricsNamespace,
+			Subsystem: metricsSubsystem,
 			Name:      "gateways_discovered",
 			Help:      "Number of gateways discovered by the controller.",
 		},
-		[]string{"name", "namespace"},
+		[]string{labelName, labelNamespace},
 	)
 
 	gatewaysSynced = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Namespace: "stoker",
-			Subsystem: "controller",
+			Namespace: metricsNamespace,
+			Subsystem: metricsSubsystem,
 			Name:      "gateways_synced",
 			Help:      "Number of gateways in Synced state.",
 		},
-		[]string{"name", "namespace"},
+		[]string{labelName, labelNamespace},
 	)
 
 	crReady = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Namespace: "stoker",
-			Subsystem: "controller",
+			Namespace: metricsNamespace,
+			Subsystem: metricsSubsystem,
 			Name:      "cr_ready",
 			Help:      "Whether the GatewaySync CR is Ready (1=ready, 0=not ready).",
 		},
-		[]string{"name", "namespace"},
+		[]string{labelName, labelNamespace},
 	)
 
 	githubAppTokenExpiry = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Namespace: "stoker",
-			Subsystem: "controller",
+			Namespace: metricsNamespace,
+			Subsystem: metricsSubsystem,
 			Name:      "github_app_token_expiry_timestamp_seconds",
 			Help:      "Unix timestamp when the cached GitHub App token expires.",
 		},
@@ -92,62 +96,62 @@ var (
 
 	crInfo = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Namespace: "stoker",
-			Subsystem: "controller",
+			Namespace: metricsNamespace,
+			Subsystem: metricsSubsystem,
 			Name:      "cr_info",
 			Help:      "Info metric (always 1) carrying CR labels for PromQL joins.",
 		},
-		[]string{"name", "namespace", "git_repo", "git_ref", "auth_type", "polling_interval"},
+		[]string{labelName, labelNamespace, "git_repo", "git_ref", "auth_type", "polling_interval"},
 	)
 
 	crPaused = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Namespace: "stoker",
-			Subsystem: "controller",
+			Namespace: metricsNamespace,
+			Subsystem: metricsSubsystem,
 			Name:      "cr_paused",
 			Help:      "Whether the GatewaySync CR is paused (1=paused, 0=active).",
 		},
-		[]string{"name", "namespace"},
+		[]string{labelName, labelNamespace},
 	)
 
 	conditionStatus = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Namespace: "stoker",
-			Subsystem: "controller",
+			Namespace: metricsNamespace,
+			Subsystem: metricsSubsystem,
 			Name:      "condition_status",
 			Help:      "Status of each condition type on the GatewaySync CR (1=True, 0=False).",
 		},
-		[]string{"name", "namespace", "type"},
+		[]string{labelName, labelNamespace, "type"},
 	)
 
 	gatewaySyncStatus = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Namespace: "stoker",
-			Subsystem: "controller",
+			Namespace: metricsNamespace,
+			Subsystem: metricsSubsystem,
 			Name:      "gateway_sync_status",
 			Help:      "Sync status of each gateway (0=Pending, 1=Synced, 2=Error, 3=MissingSidecar).",
 		},
-		[]string{"name", "namespace", "gateway"},
+		[]string{labelName, labelNamespace, "gateway"},
 	)
 
 	gatewayLastSyncTS = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Namespace: "stoker",
-			Subsystem: "controller",
+			Namespace: metricsNamespace,
+			Subsystem: metricsSubsystem,
 			Name:      "gateway_last_sync_timestamp_seconds",
 			Help:      "Unix timestamp of each gateway's last sync.",
 		},
-		[]string{"name", "namespace", "gateway"},
+		[]string{labelName, labelNamespace, "gateway"},
 	)
 
 	gatewaysMissingSidecar = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Namespace: "stoker",
-			Subsystem: "controller",
+			Namespace: metricsNamespace,
+			Subsystem: metricsSubsystem,
 			Name:      "gateways_missing_sidecar",
 			Help:      "Number of gateways missing the stoker-agent sidecar.",
 		},
-		[]string{"name", "namespace"},
+		[]string{labelName, labelNamespace},
 	)
 )
 
@@ -212,7 +216,7 @@ func observeGatewayMetrics(gs *stokerv1alpha1.GatewaySync) {
 	crReady.WithLabelValues(name, ns).Set(readyVal)
 
 	// CR info gauge — clear stale label combos then set with current values.
-	crInfo.DeletePartialMatch(prometheus.Labels{"name": name, "namespace": ns})
+	crInfo.DeletePartialMatch(prometheus.Labels{labelName: name, labelNamespace: ns})
 	pollingInterval := gs.Spec.Polling.Interval
 	if pollingInterval == "" {
 		pollingInterval = "60s"
@@ -238,7 +242,7 @@ func syncStatusToFloat(status string) float64 {
 
 // cleanupCRMetrics removes all metric series associated with a CR being deleted.
 func cleanupCRMetrics(name, namespace string) {
-	labels := prometheus.Labels{"name": name, "namespace": namespace}
+	labels := prometheus.Labels{labelName: name, labelNamespace: namespace}
 	reconcileDuration.DeletePartialMatch(labels)
 	reconcileTotal.DeletePartialMatch(labels)
 	refResolveDuration.DeletePartialMatch(labels)

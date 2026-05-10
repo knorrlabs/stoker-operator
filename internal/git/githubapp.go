@@ -14,7 +14,10 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-const defaultGitHubAPIURL = "https://api.github.com"
+const (
+	defaultGitHubAPIURL = "https://api.github.com"
+	pemTypePrivateKey   = "PRIVATE KEY"
+)
 
 // GitHubAppTokenResult holds the result of a GitHub App installation token exchange.
 type GitHubAppTokenResult struct {
@@ -95,7 +98,7 @@ func ParseRSAPrivateKey(pemBytes []byte) (*rsa.PrivateKey, error) {
 	switch block.Type {
 	case "RSA PRIVATE KEY":
 		return x509.ParsePKCS1PrivateKey(block.Bytes)
-	case "PRIVATE KEY":
+	case pemTypePrivateKey:
 		key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
 		if err != nil {
 			return nil, err

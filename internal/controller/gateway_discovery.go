@@ -85,7 +85,7 @@ func (r *GatewaySyncReconciler) discoverGateways(ctx context.Context, gs *stoker
 		// Capture ServiceAccount for auto-RBAC binding.
 		saName := pod.Spec.ServiceAccountName
 		if saName == "" {
-			saName = "default"
+			saName = defaultServiceAccount
 		}
 
 		gateway := stokerv1alpha1.DiscoveredGateway{

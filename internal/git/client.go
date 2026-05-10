@@ -17,6 +17,8 @@ import (
 	transportclient "github.com/go-git/go-git/v5/plumbing/transport/client"
 )
 
+const gitRemoteOrigin = "origin"
+
 // Result holds the outcome of a clone or fetch operation.
 type Result struct {
 	Commit string
@@ -147,7 +149,7 @@ func (g *GoGitClient) fetchAndCheckout(ctx context.Context, repoURL, ref, path s
 
 // ensureRemoteURL updates the origin remote URL if it differs from the desired URL.
 func ensureRemoteURL(repo *gogit.Repository, desiredURL string) error {
-	remote, err := repo.Remote("origin")
+	remote, err := repo.Remote(gitRemoteOrigin)
 	if err != nil {
 		return fmt.Errorf("getting origin remote: %w", err)
 	}
@@ -156,11 +158,11 @@ func ensureRemoteURL(repo *gogit.Repository, desiredURL string) error {
 		return nil
 	}
 	// Remove and re-add origin with the correct URL
-	if err := repo.DeleteRemote("origin"); err != nil {
+	if err := repo.DeleteRemote(gitRemoteOrigin); err != nil {
 		return fmt.Errorf("deleting origin remote: %w", err)
 	}
 	if _, err := repo.CreateRemote(&gogitconfig.RemoteConfig{
-		Name: "origin",
+		Name: gitRemoteOrigin,
 		URLs: []string{desiredURL},
 	}); err != nil {
 		return fmt.Errorf("creating origin remote: %w", err)
@@ -355,10 +357,10 @@ func nativeCloneAndCheckout(ctx context.Context, repoURL, ref, path string, env 
 
 func nativeFetchAndCheckout(ctx context.Context, repoURL, ref, path string, env []string) (Result, error) {
 	// Update remote URL in case it changed in the CR spec.
-	if _, err := runGit(ctx, []string{"remote", "set-url", "origin", repoURL}, path, env); err != nil {
+	if _, err := runGit(ctx, []string{"remote", "set-url", gitRemoteOrigin, repoURL}, path, env); err != nil {
 		return Result{}, fmt.Errorf("git remote set-url: %w", err)
 	}
-	if _, err := runGit(ctx, []string{"fetch", "--depth=1", "origin", ref}, path, env); err != nil {
+	if _, err := runGit(ctx, []string{"fetch", "--depth=1", gitRemoteOrigin, ref}, path, env); err != nil {
 		return Result{}, fmt.Errorf("git fetch: %w", err)
 	}
 	if _, err := runGit(ctx, []string{"checkout", "-f", "FETCH_HEAD"}, path, env); err != nil {
