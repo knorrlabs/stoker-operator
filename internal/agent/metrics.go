@@ -8,6 +8,13 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+const (
+	metricsNamespace = "stoker"
+	metricsSubsystem = "agent"
+	labelProfile     = "profile"
+	labelResult      = "result"
+)
+
 // AgentMetrics holds Prometheus metrics for the agent sidecar.
 // It uses a standalone registry (agent is not a controller-runtime manager).
 type AgentMetrics struct {
@@ -44,36 +51,36 @@ func NewAgentMetrics() *AgentMetrics {
 
 		SyncDuration: prometheus.NewHistogramVec(
 			prometheus.HistogramOpts{
-				Namespace: "stoker",
-				Subsystem: "agent",
+				Namespace: metricsNamespace,
+				Subsystem: metricsSubsystem,
 				Name:      "sync_duration_seconds",
 				Help:      "Duration of file sync operations in seconds.",
 				Buckets:   []float64{0.1, 0.5, 1, 2, 5, 10, 30, 60},
 			},
-			[]string{"profile"},
+			[]string{labelProfile},
 		),
 		SyncTotal: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
-				Namespace: "stoker",
-				Subsystem: "agent",
+				Namespace: metricsNamespace,
+				Subsystem: metricsSubsystem,
 				Name:      "sync_total",
 				Help:      "Total number of sync operations.",
 			},
-			[]string{"profile", "result"},
+			[]string{labelProfile, labelResult},
 		),
 		FilesChanged: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
-				Namespace: "stoker",
-				Subsystem: "agent",
+				Namespace: metricsNamespace,
+				Subsystem: metricsSubsystem,
 				Name:      "files_changed",
 				Help:      "Number of files changed in the last sync.",
 			},
-			[]string{"profile"},
+			[]string{labelProfile},
 		),
 		GitFetchDuration: prometheus.NewHistogramVec(
 			prometheus.HistogramOpts{
-				Namespace: "stoker",
-				Subsystem: "agent",
+				Namespace: metricsNamespace,
+				Subsystem: metricsSubsystem,
 				Name:      "git_fetch_duration_seconds",
 				Help:      "Duration of git clone/fetch operations in seconds.",
 				Buckets:   []float64{0.5, 1, 2, 5, 10, 30, 60, 120},
@@ -82,17 +89,17 @@ func NewAgentMetrics() *AgentMetrics {
 		),
 		GitFetchTotal: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
-				Namespace: "stoker",
-				Subsystem: "agent",
+				Namespace: metricsNamespace,
+				Subsystem: metricsSubsystem,
 				Name:      "git_fetch_total",
 				Help:      "Total number of git clone/fetch operations.",
 			},
-			[]string{"operation", "result"},
+			[]string{"operation", labelResult},
 		),
 		ScanDuration: prometheus.NewHistogram(
 			prometheus.HistogramOpts{
-				Namespace: "stoker",
-				Subsystem: "agent",
+				Namespace: metricsNamespace,
+				Subsystem: metricsSubsystem,
 				Name:      "scan_duration_seconds",
 				Help:      "Duration of Ignition scan API calls in seconds.",
 				Buckets:   []float64{0.1, 0.5, 1, 2, 5, 10, 30, 60},
@@ -100,33 +107,33 @@ func NewAgentMetrics() *AgentMetrics {
 		),
 		ScanTotal: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
-				Namespace: "stoker",
-				Subsystem: "agent",
+				Namespace: metricsNamespace,
+				Subsystem: metricsSubsystem,
 				Name:      "scan_total",
 				Help:      "Total number of Ignition scan operations.",
 			},
-			[]string{"result"},
+			[]string{labelResult},
 		),
 		DesignerBlocked: prometheus.NewGauge(
 			prometheus.GaugeOpts{
-				Namespace: "stoker",
-				Subsystem: "agent",
+				Namespace: metricsNamespace,
+				Subsystem: metricsSubsystem,
 				Name:      "designer_sessions_blocked",
 				Help:      "Whether sync is currently blocked by active designer sessions (1=blocked, 0=not).",
 			},
 		),
 		LastSyncTimestamp: prometheus.NewGauge(
 			prometheus.GaugeOpts{
-				Namespace: "stoker",
-				Subsystem: "agent",
+				Namespace: metricsNamespace,
+				Subsystem: metricsSubsystem,
 				Name:      "last_sync_timestamp_seconds",
 				Help:      "Unix timestamp of the last successful sync.",
 			},
 		),
 		LastSyncSuccess: prometheus.NewGauge(
 			prometheus.GaugeOpts{
-				Namespace: "stoker",
-				Subsystem: "agent",
+				Namespace: metricsNamespace,
+				Subsystem: metricsSubsystem,
 				Name:      "last_sync_success",
 				Help:      "Whether the last sync was successful (1=success, 0=error).",
 			},
@@ -134,43 +141,43 @@ func NewAgentMetrics() *AgentMetrics {
 
 		FilesAdded: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
-				Namespace: "stoker",
-				Subsystem: "agent",
+				Namespace: metricsNamespace,
+				Subsystem: metricsSubsystem,
 				Name:      "files_added",
 				Help:      "Number of files added in the last sync.",
 			},
-			[]string{"profile"},
+			[]string{labelProfile},
 		),
 		FilesModified: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
-				Namespace: "stoker",
-				Subsystem: "agent",
+				Namespace: metricsNamespace,
+				Subsystem: metricsSubsystem,
 				Name:      "files_modified",
 				Help:      "Number of files modified in the last sync.",
 			},
-			[]string{"profile"},
+			[]string{labelProfile},
 		),
 		FilesDeleted: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
-				Namespace: "stoker",
-				Subsystem: "agent",
+				Namespace: metricsNamespace,
+				Subsystem: metricsSubsystem,
 				Name:      "files_deleted",
 				Help:      "Number of files deleted in the last sync.",
 			},
-			[]string{"profile"},
+			[]string{labelProfile},
 		),
 		DesignerSessionsActive: prometheus.NewGauge(
 			prometheus.GaugeOpts{
-				Namespace: "stoker",
-				Subsystem: "agent",
+				Namespace: metricsNamespace,
+				Subsystem: metricsSubsystem,
 				Name:      "designer_sessions_active",
 				Help:      "Number of active Ignition Designer sessions.",
 			},
 		),
 		SyncSkippedTotal: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
-				Namespace: "stoker",
-				Subsystem: "agent",
+				Namespace: metricsNamespace,
+				Subsystem: metricsSubsystem,
 				Name:      "sync_skipped_total",
 				Help:      "Total number of sync operations skipped.",
 			},
@@ -178,8 +185,8 @@ func NewAgentMetrics() *AgentMetrics {
 		),
 		GatewayStartupDuration: prometheus.NewHistogram(
 			prometheus.HistogramOpts{
-				Namespace: "stoker",
-				Subsystem: "agent",
+				Namespace: metricsNamespace,
+				Subsystem: metricsSubsystem,
 				Name:      "gateway_startup_duration_seconds",
 				Help:      "Time from agent startup to gateway becoming responsive.",
 				Buckets:   []float64{5, 10, 30, 60, 120, 300, 600},

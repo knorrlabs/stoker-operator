@@ -9,6 +9,8 @@ import (
 	"time"
 )
 
+const mappingTypeFile = "file"
+
 // ResolvedMapping is a single source→destination mapping with absolute source
 // and destination-relative target.
 type ResolvedMapping struct {
@@ -63,7 +65,7 @@ func (e *Engine) ExecutePlan(plan *SyncPlan) (*SyncResult, error) {
 	stagedFiles := make(map[string]bool)
 
 	for _, m := range plan.Mappings {
-		if m.Type == "file" {
+		if m.Type == mappingTypeFile {
 			if err := stageSingleFile(m, plan.StagingDir, excludes, stagedFiles, plan.ApplyTemplate); err != nil {
 				return nil, err
 			}
