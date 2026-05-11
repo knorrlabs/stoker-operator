@@ -67,7 +67,7 @@ jobs:
           touch "/tmp/digests/${{ matrix.image_name }}/${digest#sha256:}"
 
       - name: Upload digest
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: digest-${{ matrix.image_name }}-${{ matrix.arch }}
           path: /tmp/digests/${{ matrix.image_name }}
@@ -95,13 +95,13 @@ jobs:
         run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
 
       - name: Download amd64 digest
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: digest-${{ matrix.image_name }}-amd64
           path: /tmp/digests
 
       - name: Download arm64 digest
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: digest-${{ matrix.image_name }}-arm64
           path: /tmp/digests
