@@ -65,7 +65,7 @@ jobs:
         run: docker load -i _kind-image.tar
 
       - name: Install Helm
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@v5
 
       - name: Install Chainsaw
         run: |
