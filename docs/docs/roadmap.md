@@ -6,19 +6,7 @@ description: Planned features and milestones for Stoker.
 
 # Roadmap
 
-Current version: **v0.5.0** — [see the changelog](https://github.com/ia-eknorr/stoker-operator/blob/main/CHANGELOG.md) for release history.
-
-## v0.5.0 — Observability & Reliability ✓
-
-Metrics, dashboards, and monitoring for production deployments.
-
-- ✓ Prometheus metrics for controller (reconcile duration, ref resolution, gateway counts, CR info, conditions, per-gateway status)
-- ✓ Prometheus metrics for agent (sync duration, files changed/added/modified/deleted, git fetch, scan, designer sessions, sync skips, gateway startup)
-- ✓ Two Grafana dashboards shipped in Helm chart (fleet overview + per-CR detail with drill-down)
-- ✓ ServiceMonitor and PodMonitor templates with `honorLabels` support
-- ✓ SSH host key verification with optional `knownHosts` on SSH auth (fix `InsecureIgnoreHostKey`)
-- ✓ Exponential backoff for transient git and API errors (30s → 60s → 120s → 5m cap)
-- ✓ Graceful shutdown with in-flight sync completion deadline (prevent partial file writes on SIGTERM)
+Current version: **v0.5.2** — [see the changelog](https://github.com/ia-eknorr/stoker-operator/blob/main/CHANGELOG.md) for release history.
 
 ## v0.6.0 — Scale & Operability
 

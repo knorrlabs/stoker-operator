@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [v0.5.2] - 2026-05-11
+
+### Changed
+
+- Upgraded `sigs.k8s.io/controller-runtime` to `v0.24.0` for Kubernetes v1.36 compatibility — `v0.23.1` was incompatible with `k8s.io/client-go v0.36.0` due to a missing `HasSyncedChecker` implementation in the multi-namespace cache (#112)
+- Upgraded Kubernetes libraries to v1.36 (`k8s.io/apiextensions-apiserver`, `k8s.io/apiserver`, `k8s.io/component-base`) (#109, #112)
+- Upgraded Go toolchain to v1.26 (#108)
+- Dependency updates: `go-git/v5` v5.19.0, `ginkgo/v2` v2.28.3, `gomega` v1.40.0, `golang.org/x/crypto` v0.51.0 (#110, #111, #113, #114)
+
 ## [v0.5.1] - 2026-03-05
 
 ### Fixed
