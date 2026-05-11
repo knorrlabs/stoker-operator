@@ -13,6 +13,10 @@ const config: Config = {
   organizationName: "ia-eknorr",
   projectName: "stoker-operator",
 
+  future: {
+    v4: true,
+  },
+
   onBrokenLinks: "throw",
 
   markdown: {
@@ -20,16 +24,30 @@ const config: Config = {
     hooks: {
       onBrokenMarkdownLinks: "warn",
     },
+    mdx1Compat: {
+      admonitions: true,
+    },
   },
+
   themes: [
     "@docusaurus/theme-mermaid",
     [
-      "@cmfcmf/docusaurus-search-local",
-      { indexBlog: false },
+      require.resolve("@easyops-cn/docusaurus-search-local"),
+      { hashed: true, indexBlog: false },
     ],
   ],
 
-  clientModules: ["./src/searchShortcut.js"],
+  plugins: [
+    "@docusaurus/plugin-ideal-image",
+    "docusaurus-plugin-image-zoom",
+    [
+      "docusaurus-plugin-llms-txt",
+      {
+        title: "Stoker",
+        description: "Git-driven configuration sync for Ignition SCADA gateways",
+      },
+    ],
+  ],
 
   i18n: {
     defaultLocale: "en",
@@ -115,6 +133,13 @@ const config: Config = {
     colorMode: {
       defaultMode: "light",
       respectPrefersColorScheme: true,
+    },
+    zoom: {
+      selector: ".markdown img",
+      background: {
+        light: "rgb(255, 255, 255)",
+        dark: "rgb(50, 50, 50)",
+      },
     },
   } satisfies Preset.ThemeConfig,
 };
