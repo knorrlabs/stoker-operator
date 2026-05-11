@@ -12,6 +12,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
@@ -219,9 +220,9 @@ func injectSidecar(pod *corev1.Pod, gs *stokerv1alpha1.GatewaySync) {
 			{Name: "metrics", ContainerPort: 8083, Protocol: corev1.ProtocolTCP},
 		},
 		SecurityContext: &corev1.SecurityContext{
-			RunAsNonRoot:             boolPtr(true),
-			ReadOnlyRootFilesystem:   boolPtr(true),
-			AllowPrivilegeEscalation: boolPtr(false),
+			RunAsNonRoot:             ptr.To(true),
+			ReadOnlyRootFilesystem:   ptr.To(true),
+			AllowPrivilegeEscalation: ptr.To(false),
 			SeccompProfile: &corev1.SeccompProfile{
 				Type: corev1.SeccompProfileTypeRuntimeDefault,
 			},
@@ -574,8 +575,4 @@ func resolveDataVolume(pod *corev1.Pod) (string, string) {
 		return name, mountIgnitionData
 	}
 	return "", ""
-}
-
-func boolPtr(b bool) *bool {
-	return &b
 }
