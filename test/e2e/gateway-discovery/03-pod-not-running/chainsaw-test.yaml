@@ -5,7 +5,7 @@ metadata:
 spec:
   description: >
     A pod with stoker.io/cr-name but not in Running phase (e.g. Pending due to
-    unschedulable nodeName) should NOT appear in discoveredGateways.
+    unschedulable nodeSelector) should NOT appear in discoveredGateways.
   steps:
     - name: deploy git server and api-key secret
       try:
@@ -69,7 +69,8 @@ spec:
                 annotations:
                   stoker.io/cr-name: test-pnr
               spec:
-                nodeName: nonexistent-node
+                nodeSelector:
+                  stoker.io/nonexistent: "true"
                 containers:
                   - name: pause
                     image: registry.k8s.io/pause:3.9
