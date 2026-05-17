@@ -41,10 +41,14 @@ const config: Config = {
     "@docusaurus/plugin-ideal-image",
     "docusaurus-plugin-image-zoom",
     [
-      "docusaurus-plugin-llms-txt",
+      "@signalwire/docusaurus-plugin-llms-txt",
       {
-        title: "Stoker",
-        description: "Git-driven configuration sync for Ignition SCADA gateways",
+        siteTitle: "Stoker",
+        siteDescription: "Git-driven configuration sync for Ignition SCADA gateways",
+        depth: 2,
+        content: {
+          enableLlmsFullTxt: true,
+        },
       },
     ],
   ],
