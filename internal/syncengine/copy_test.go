@@ -78,6 +78,28 @@ func TestFilesEqual_BothSymlinks(t *testing.T) {
 	}
 }
 
+func TestCopyFile_RejectsSymlinkSource(t *testing.T) {
+	tmp := t.TempDir()
+	target := filepath.Join(tmp, "credential.txt")
+	link := filepath.Join(tmp, "config.txt")
+	dst := filepath.Join(tmp, "dest", "config.txt")
+	writeTestFile(t, target, "secret")
+	if err := os.Symlink(target, link); err != nil {
+		t.Fatalf("creating symlink: %v", err)
+	}
+
+	wrote, err := copyFile(link, dst)
+	if err == nil {
+		t.Fatal("copyFile should reject a symlink source, got nil error")
+	}
+	if wrote {
+		t.Error("copyFile should not report write when rejecting symlink")
+	}
+	if _, statErr := os.Stat(dst); !os.IsNotExist(statErr) {
+		t.Errorf("destination must not be created when source is symlink (stat err: %v)", statErr)
+	}
+}
+
 func TestFilesEqual_MissingFile(t *testing.T) {
 	tmp := t.TempDir()
 	a := filepath.Join(tmp, "exists.txt")

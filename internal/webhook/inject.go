@@ -171,7 +171,7 @@ func (p *PodInjector) resolveCRName(ctx context.Context, namespace string, pod *
 
 // injectSidecar patches the pod spec with the stoker-agent native sidecar.
 func injectSidecar(pod *corev1.Pod, gs *stokerv1alpha1.GatewaySync) {
-	image := resolveAgentImage(pod, gs)
+	image := resolveAgentImage(gs)
 	pullPolicy := resolveAgentPullPolicy(gs)
 
 	// Determine gateway name for env var
@@ -300,17 +300,10 @@ func injectSidecar(pod *corev1.Pod, gs *stokerv1alpha1.GatewaySync) {
 	pod.Labels[stokertypes.LabelAgent] = annotationTrue
 }
 
-// resolveAgentImage resolves the agent image using 3-tier priority:
-// 1. Pod annotation (debugging override)
-// 2. CR spec.agent.image
-// 3. Environment variable / hardcoded default
-func resolveAgentImage(pod *corev1.Pod, gs *stokerv1alpha1.GatewaySync) string {
-	// Tier 1: annotation override
-	if img := pod.Annotations[stokertypes.AnnotationAgentImage]; img != "" {
-		return img
-	}
-
-	// Tier 2: CR spec
+// resolveAgentImage resolves the agent image using 2-tier priority:
+// 1. CR spec.agent.image
+// 2. Environment variable / hardcoded default
+func resolveAgentImage(gs *stokerv1alpha1.GatewaySync) string {
 	spec := gs.Spec.Agent.Image
 	if spec.Repository != "" {
 		tag := spec.Tag
@@ -320,7 +313,6 @@ func resolveAgentImage(pod *corev1.Pod, gs *stokerv1alpha1.GatewaySync) string {
 		return spec.Repository + ":" + tag
 	}
 
-	// Tier 3: env var fallback
 	if img := os.Getenv(envDefaultAgentImage); img != "" {
 		return img
 	}

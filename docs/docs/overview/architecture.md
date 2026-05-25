@@ -51,7 +51,7 @@ The webhook intercepts pod creation and injects the agent as a **native sidecar*
 
 Optionally, the `stoker.io/injection=enabled` namespace label can be required by setting `webhook.namespaceSelector.requireLabel=true` in the Helm values. This is useful for regulated environments that need explicit namespace opt-in.
 
-The agent image is resolved in three tiers: pod annotation `stoker.io/agent-image` > CR field `spec.agent.image` > environment variable `DEFAULT_AGENT_IMAGE`.
+The agent image is resolved in two tiers: CR field `spec.agent.image` > environment variable `DEFAULT_AGENT_IMAGE`.
 
 ### Sync agent
 
