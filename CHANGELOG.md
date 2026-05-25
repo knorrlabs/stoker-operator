@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Security
+
+- **Sync engine rejects symlink sources** — `copyFile` now `Lstat`s the source before opening it and returns an error when the source is a symlink. Previously a commit in a synced repo could include a symlink (e.g. `config/creds.txt -> /etc/stoker/git-credentials`) and a profile mapping that referenced it, causing the agent to follow the symlink and copy mounted credentials into the gateway data directory.
+
+### Removed
+
+- **`stoker.io/agent-image` pod annotation** — the pod-annotation tier of agent image resolution is removed. The annotation let any pod author in an injection-enabled namespace specify an arbitrary container image, which the mutating webhook would then inject as a sidecar — bypassing cluster image-policy admission controllers. Agent image is now resolved only from `spec.agent.image` on the GatewaySync CR or the `DEFAULT_AGENT_IMAGE` environment variable.
+
+  **Upgrade impact:** pods that set `stoker.io/agent-image` will continue to be admitted without error, but the annotation is now ignored. The injected agent will use the CR spec or env default instead. If you relied on the override (debug builds, per-pod canary images), move the image into the CR's `spec.agent.image` field or set `DEFAULT_AGENT_IMAGE` on the controller deployment.
+
 ## [v0.5.2] - 2026-05-11
 
 ### Changed

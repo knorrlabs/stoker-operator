@@ -45,10 +45,6 @@ const (
 	// AnnotationInjected is set by the webhook after successful injection for tracking.
 	AnnotationInjected = AnnotationPrefix + "/injected"
 
-	// AnnotationAgentImage overrides the agent image for a specific pod (debugging use).
-	// Format: "repo:tag" or "repo@sha256:digest"
-	AnnotationAgentImage = AnnotationPrefix + "/agent-image"
-
 	// Labels
 
 	// LabelCRName is used on owned resources (PVCs, ConfigMaps, Secrets) to identify the parent CR.

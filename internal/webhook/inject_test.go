@@ -401,33 +401,6 @@ func TestInject_GitHubAppAuth_TokenSecretVolume(t *testing.T) {
 	}
 }
 
-func TestInject_AgentImageOverrideViaAnnotation(t *testing.T) {
-	gs := testGatewaySync()
-	injector := newInjector(gs)
-
-	pod := basePod(map[string]string{
-		stokertypes.AnnotationInject:     "true",
-		stokertypes.AnnotationCRName:     "my-sync",
-		stokertypes.AnnotationAgentImage: "custom-registry.io/agent:debug",
-	})
-	resp := injector.Handle(context.Background(), makeAdmissionRequest(pod))
-
-	if !resp.Allowed {
-		t.Fatalf("expected allowed, got: %s", resp.Result.Message)
-	}
-
-	// Verify via direct injection — annotation image takes priority
-	patched := pod.DeepCopy()
-	injectSidecar(patched, gs)
-	agent := findInitContainer(patched)
-	if agent == nil {
-		t.Fatal("stoker-agent not found")
-	}
-	if agent.Image != "custom-registry.io/agent:debug" {
-		t.Fatalf("expected custom image, got %s", agent.Image)
-	}
-}
-
 func TestInject_AgentLabelAndMetricsPort(t *testing.T) {
 	gs := testGatewaySync()
 	pod := basePod(map[string]string{

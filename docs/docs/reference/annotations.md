@@ -18,7 +18,6 @@ These annotations are set on gateway pods, typically via `podAnnotations` in the
 | `stoker.io/cr-name` | string | No | Name of the GatewaySync CR to sync from. Auto-derived if exactly one CR exists in the namespace. |
 | `stoker.io/profile` | string | No | Sync profile name from `spec.sync.profiles`. Falls back to the `default` profile if unset. |
 | `stoker.io/gateway-name` | string | No | Override gateway identity. Defaults to the pod's `app.kubernetes.io/name` label. |
-| `stoker.io/agent-image` | `"repo:tag"` | No | Override the agent sidecar image for this pod. For debugging use. |
 
 **Example:**
 
@@ -72,8 +71,7 @@ These annotations trigger an immediate reconciliation via the controller's predi
 
 ## Agent image resolution order
 
-The agent sidecar image is resolved using a three-tier fallback:
+The agent sidecar image is resolved using a two-tier fallback:
 
-1. Pod annotation `stoker.io/agent-image` (highest priority)
-2. CR field `spec.agent.image`
-3. Environment variable `DEFAULT_AGENT_IMAGE` (set by Helm chart)
+1. CR field `spec.agent.image` (highest priority)
+2. Environment variable `DEFAULT_AGENT_IMAGE` (set by Helm chart)
