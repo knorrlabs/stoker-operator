@@ -11,7 +11,17 @@ import (
 
 // copyFile copies src to dst, creating parent directories as needed.
 // Returns true if the file was actually written (new or changed).
+// Symlinks at src are rejected: a malicious repo could symlink to credential
+// mounts or other host paths and have them copied into the destination.
 func copyFile(src, dst string) (bool, error) {
+	srcInfo, err := os.Lstat(src)
+	if err != nil {
+		return false, fmt.Errorf("stat source %s: %w", src, err)
+	}
+	if srcInfo.Mode()&fs.ModeSymlink != 0 {
+		return false, fmt.Errorf("refusing to copy symlink source: %s", src)
+	}
+
 	// Fast path: if dst exists with same size, compare hashes.
 	if filesEqual(src, dst) {
 		return false, nil
@@ -37,11 +47,7 @@ func copyFile(src, dst string) (bool, error) {
 		return false, fmt.Errorf("copying %s to %s: %w", src, dst, err)
 	}
 
-	// Preserve source file permissions.
-	srcInfo, err := os.Lstat(src)
-	if err == nil {
-		_ = os.Chmod(dst, srcInfo.Mode())
-	}
+	_ = os.Chmod(dst, srcInfo.Mode())
 
 	return true, nil
 }
