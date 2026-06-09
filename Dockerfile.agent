@@ -16,7 +16,7 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} \
     -o agent cmd/agent/main.go
 
 # Alpine with git and openssh — no shell session risk with readOnlyRootFilesystem
-FROM alpine:3.23
+FROM alpine:3.24
 RUN apk add --no-cache git openssh-client nss_wrapper
 WORKDIR /
 COPY --from=builder /workspace/agent .
