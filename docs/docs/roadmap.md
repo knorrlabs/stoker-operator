@@ -6,7 +6,7 @@ description: Planned features and milestones for Stoker.
 
 # Roadmap
 
-Current version: **v0.5.2** — [see the changelog](https://github.com/ia-eknorr/stoker-operator/blob/main/CHANGELOG.md) for release history.
+Current version: **v0.6.1**. [See the changelog](https://github.com/ia-eknorr/stoker-operator/blob/main/CHANGELOG.md) for release history.
 
 ## v0.6.0 — Scale & Operability
 

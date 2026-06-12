@@ -4,6 +4,48 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [v0.6.1] - 2026-06-12
+
+A correctness, security, and observability hardening release. No new features, CRD changes, or breaking changes; safe to upgrade in place from v0.6.0.
+
+### Security
+
+- **Constant-time webhook token comparison**: the webhook receiver's bearer-token check now runs in constant time, closing a timing oracle that could leak the configured token byte by byte (#155).
+- **Git token no longer persisted to disk**: the native git client stops writing the credential-bearing URL into `.git/config`. Fetches use the auth URL directly and the persisted `origin` remote is rewritten to its credential-free form (#154).
+- **GitHub App token exchange is bounded by a timeout**: the controller's HTTP call to exchange the App PEM for an installation token previously ran under a deadline-free context and could hang indefinitely; it now has an explicit timeout (#150).
+
+### Fixed
+
+- **Controller data race under concurrent reconciles**: with `MaxConcurrentReconciles: 5`, two GatewaySync CRs reconciling at once could trigger a concurrent map-write panic on the reconciler's shared token-cache and backoff maps. Access is now synchronized (#150).
+- **RBAC no longer revoked on transient pod-List failures**: a failed pod List could silently rewrite an agent RoleBinding's subjects to `default`, stripping permissions from live agents. The reconciler now treats the List error as retryable instead of acting on an empty result (#150).
+- **Pods without a profile annotation use the documented default**: pods missing the `stoker.io/profile` annotation crash-looped despite the CRD documenting a `default-profile` fallback; the fallback now applies as specified (#152).
+- **Concurrent syncs no longer corrupt the staging directory**: the post-commission goroutine and the watcher loop could run overlapping syncs sharing one staging directory and mutually `RemoveAll` each other's files. Syncs are now serialized (#152).
+- **Atomic live-file writes**: files are written via temp-file-and-rename instead of truncate-in-place, so a killed agent can no longer leave half-written SCADA config for the gateway to scan (#152).
+- **Commit-SHA refs clone correctly**: a commit-SHA ref produced an invalid `git clone --branch <sha>` that broke the initial clone permanently; SHA refs now use init, fetch, then checkout (#154).
+- **Failed post-sync scan retries**: a failed post-sync scan left the gateway in `Error` with no retry until the next commit. The agent now returns an error so the existing backoff retries it (#158).
+- **Webhook receiver runs on every replica**: the receiver previously ran only on the leader, so a share of webhooks reached replicas that returned connection-refused behind the Service. It now serves on all replicas, and injector port/TLS fallbacks are aligned with the CRD defaults (#155).
+
+### Changed
+
+- **`MissingSidecar` event fires only on transition**: it was re-emitted every 60s indefinitely; it now fires only when a gateway enters the missing-sidecar state (#156).
+- **Per-gateway metrics are cleaned up on pod deletion**: metric series for a gateway are removed when its pod is deleted instead of outliving it forever (#156).
+- **Ignition API key is read per request**: the agent re-reads the key from its mount on each request, so Secret rotation takes effect without a pod restart (#156).
+- The agent now flushes its event recorder before exiting on error (#156).
+- Removed a dead go-git auth code path that implied a token-delivery channel which does not exist (#152).
+
+### Documentation
+
+- Corrected `CLAUDE.md` and the architecture docs: GitHub App tokens are delivered via Secret, not ConfigMap, and references to the vestigial `stoker-changes` ConfigMap and the never-implemented ref-override annotation constant were removed (#151).
+
+### Tests
+
+- Added coverage for the previously-untested Ignition client (scan ordering, `PortCheck` semantics) and the designer-session policy matrix. Coverage: ignition 0 to 81%, agent 20 to 46%, git 30 to 42% (#160).
+
+### Infrastructure
+
+- **Chart hygiene**: `priorityClassName` passthrough, consistent port naming, and a load-bearing-name comment on the agent ClusterRole (#159).
+- `make e2e` now falls back to loading images from an archive when `kind load docker-image` fails against Docker's containerd image store (#153).
+
 ## [v0.6.0] - 2026-05-24
 
 ### Security
@@ -210,6 +252,10 @@ Initial release — controller + agent sidecar for Git-driven Ignition gateway c
 - **Functional test suite** with phased kind cluster tests (phases 02-09)
 - Unit tests with envtest for controller and syncengine
 
+[v0.6.1]: https://github.com/ia-eknorr/stoker-operator/releases/tag/v0.6.1
+[v0.6.0]: https://github.com/ia-eknorr/stoker-operator/releases/tag/v0.6.0
+[v0.5.3]: https://github.com/ia-eknorr/stoker-operator/releases/tag/v0.5.3
+[v0.5.2]: https://github.com/ia-eknorr/stoker-operator/releases/tag/v0.5.2
 [v0.5.1]: https://github.com/ia-eknorr/stoker-operator/releases/tag/v0.5.1
 [v0.5.0]: https://github.com/ia-eknorr/stoker-operator/releases/tag/v0.5.0
 [v0.4.10]: https://github.com/ia-eknorr/stoker-operator/releases/tag/v0.4.10
