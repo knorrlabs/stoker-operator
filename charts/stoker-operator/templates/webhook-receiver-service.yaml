@@ -12,7 +12,7 @@ spec:
     - port: {{ .Values.webhookReceiver.port | default 9444 }}
       targetPort: webhook-rx
       protocol: TCP
-      name: http
+      name: webhook-rx
   selector:
     {{- include "stoker-operator.selectorLabels" . | nindent 4 }}
 {{- end }}

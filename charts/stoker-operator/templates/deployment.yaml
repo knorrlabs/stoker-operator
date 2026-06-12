@@ -134,6 +134,9 @@ spec:
       {{- end }}
       serviceAccountName: {{ include "stoker-operator.serviceAccountName" . }}
       terminationGracePeriodSeconds: 10
+      {{- with .Values.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
