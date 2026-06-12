@@ -4,15 +4,11 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 
-	"github.com/go-git/go-git/v5/plumbing/transport"
-	gogithttp "github.com/go-git/go-git/v5/plumbing/transport/http"
-	gogitssh "github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/go-logr/logr"
-	"golang.org/x/crypto/ssh"
-	"golang.org/x/crypto/ssh/knownhosts"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -29,10 +25,7 @@ import (
 	stokertypes "github.com/ia-eknorr/stoker-operator/pkg/types"
 )
 
-const (
-	gitAccessTokenUser = "x-access-token"
-	defaultProfileName = "default"
-)
+const defaultProfileName = "default"
 
 // agentVersion is set at build time via ldflags. Falls back to "dev" for local builds.
 var agentVersion = "dev"
@@ -64,6 +57,12 @@ type Agent struct {
 	// Exponential backoff for consecutive sync failures.
 	consecutiveErrors int
 	backoffUntil      time.Time
+
+	// syncMu serializes sync cycles. The post-commission goroutine and the
+	// watcher loop share one staging directory; concurrent ExecutePlan calls
+	// would delete it out from under each other mid-merge. It also guards
+	// lastSyncedCommit and lastSyncedProfiles.
+	syncMu sync.Mutex
 
 	// Graceful shutdown: track in-flight syncs.
 	syncInProgress atomic.Bool
@@ -129,19 +128,18 @@ func (a *Agent) Run(ctx context.Context) error {
 	// Cache GatewaySync CR reference for event emission.
 	a.fetchCRRef(ctx)
 
-	// Resolve git auth from mounted files or metadata ConfigMap (GitHub App).
-	auth := a.resolveAuth(meta)
-
 	// Use git URL from metadata ConfigMap, fall back to empty (shouldn't happen).
 	gitURL := meta.GitURL
 	if gitURL == "" {
 		return fmt.Errorf("gitURL not found in metadata ConfigMap")
 	}
 
-	// Initial clone.
+	// Initial clone. Git auth comes from mounted credential files via
+	// GIT_SSH_KEY_FILE / GIT_TOKEN_FILE env vars, read fresh on every git
+	// operation so rotated Secrets are picked up without a restart.
 	log.Info("cloning repository", "url", gitURL, "ref", meta.Ref)
 	cloneStart := time.Now()
-	result, err := a.GitClient.CloneOrFetch(ctx, gitURL, meta.Ref, a.Config.RepoPath, auth)
+	result, err := a.GitClient.CloneOrFetch(ctx, gitURL, meta.Ref, a.Config.RepoPath, nil)
 	a.Metrics.GitFetchDuration.WithLabelValues("clone").Observe(time.Since(cloneStart).Seconds())
 	if err != nil {
 		a.Metrics.GitFetchTotal.WithLabelValues("clone", "error").Inc()
@@ -201,7 +199,7 @@ func (a *Agent) Run(ctx context.Context) error {
 
 		case <-a.Watcher.Events():
 			log.V(1).Info("sync triggered")
-			a.handleSyncTrigger(ctx, gitURL, auth)
+			a.handleSyncTrigger(ctx, gitURL)
 		}
 	}
 }
@@ -233,7 +231,10 @@ func (a *Agent) postCommissionSync(ctx context.Context, commit, ref string) {
 
 		a.Metrics.GatewayStartupDuration.Observe(time.Since(startupStart).Seconds())
 		log.Info("gateway responsive, running post-commission re-sync")
-		if err := a.syncOnce(ctx, commit, ref, false, a.lastSyncedProfiles); err != nil {
+		a.syncMu.Lock()
+		err := a.syncOnce(ctx, commit, ref, false, a.lastSyncedProfiles)
+		a.syncMu.Unlock()
+		if err != nil {
 			log.Error(err, "post-commission sync failed")
 		} else {
 			log.Info("post-commission sync complete")
@@ -274,7 +275,7 @@ func (a *Agent) waitForMetadata(ctx context.Context) (*Metadata, error) {
 }
 
 // handleSyncTrigger reads the latest metadata and performs a sync if needed.
-func (a *Agent) handleSyncTrigger(ctx context.Context, gitURL string, auth transport.AuthMethod) {
+func (a *Agent) handleSyncTrigger(ctx context.Context, gitURL string) {
 	log := logf.FromContext(ctx).WithName("sync")
 
 	// Check backoff before doing any work.
@@ -296,13 +297,8 @@ func (a *Agent) handleSyncTrigger(ctx context.Context, gitURL string, auth trans
 		return
 	}
 
-	// Refresh auth from metadata if GitHub App token was updated by controller.
-	if meta.GitToken != "" {
-		auth = &gogithttp.BasicAuth{
-			Username: gitAccessTokenUser,
-			Password: meta.GitToken,
-		}
-	}
+	a.syncMu.Lock()
+	defer a.syncMu.Unlock()
 
 	// Check if commit or profiles changed.
 	if meta.Commit == a.lastSyncedCommit && meta.Profiles == a.lastSyncedProfiles {
@@ -332,7 +328,7 @@ func (a *Agent) handleSyncTrigger(ctx context.Context, gitURL string, auth trans
 
 	// Fetch and checkout new commit.
 	fetchStart := time.Now()
-	result, err := a.GitClient.CloneOrFetch(syncCtx, gitURL, meta.Ref, a.Config.RepoPath, auth)
+	result, err := a.GitClient.CloneOrFetch(syncCtx, gitURL, meta.Ref, a.Config.RepoPath, nil)
 	a.Metrics.GitFetchDuration.WithLabelValues("fetch").Observe(time.Since(fetchStart).Seconds())
 	if err != nil {
 		a.Metrics.GitFetchTotal.WithLabelValues("fetch", "error").Inc()
@@ -754,53 +750,4 @@ func (a *Agent) fetchCRRef(ctx context.Context) {
 // isForbidden checks if an error (possibly wrapped) is a Kubernetes 403 Forbidden.
 func isForbidden(err error) bool {
 	return apierrors.IsForbidden(err) || apierrors.ReasonForError(err) == metav1.StatusReasonForbidden
-}
-
-// resolveAuth builds a go-git transport.AuthMethod from mounted credential files
-// or from the metadata ConfigMap (GitHub App tokens delivered by controller).
-func (a *Agent) resolveAuth(meta *Metadata) transport.AuthMethod {
-	// File-based auth takes priority (SSH key, token).
-	if auth := a.resolveFileAuth(); auth != nil {
-		return auth
-	}
-
-	// GitHub App: token delivered via metadata ConfigMap.
-	if meta != nil && meta.GitToken != "" {
-		return &gogithttp.BasicAuth{
-			Username: gitAccessTokenUser,
-			Password: meta.GitToken,
-		}
-	}
-
-	return nil
-}
-
-// resolveFileAuth builds a go-git transport.AuthMethod from mounted credential files.
-func (a *Agent) resolveFileAuth() transport.AuthMethod {
-	// SSH key takes priority.
-	if sshKey := a.Config.GitSSHKey(); len(sshKey) > 0 {
-		publicKey, err := gogitssh.NewPublicKeys("git", sshKey, "")
-		if err == nil {
-			if a.Config.GitKnownHostsFile != "" {
-				if hostKeyCallback, khErr := knownhosts.New(a.Config.GitKnownHostsFile); khErr == nil {
-					publicKey.HostKeyCallback = hostKeyCallback
-				} else {
-					publicKey.HostKeyCallback = ssh.InsecureIgnoreHostKey()
-				}
-			} else {
-				publicKey.HostKeyCallback = ssh.InsecureIgnoreHostKey()
-			}
-			return publicKey
-		}
-	}
-
-	// Token auth.
-	if token := a.Config.GitToken(); token != "" {
-		return &gogithttp.BasicAuth{
-			Username: gitAccessTokenUser,
-			Password: token,
-		}
-	}
-
-	return nil
 }
