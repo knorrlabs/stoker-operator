@@ -186,14 +186,16 @@ func injectSidecar(pod *corev1.Pod, gs *stokerv1alpha1.GatewaySync) {
 		crName = gs.Name
 	}
 
-	// Gateway port and TLS from CR
+	// Gateway port and TLS from CR. The API server applies the CRD defaults
+	// (8088, TLS off); these fallbacks only fire when defaulting was bypassed
+	// and must agree with the CRD so behavior doesn't depend on the path taken.
 	gatewayPort := fmt.Sprintf("%d", gs.Spec.Gateway.Port)
 	if gs.Spec.Gateway.Port == 0 {
-		gatewayPort = "8043"
+		gatewayPort = "8088"
 	}
-	gatewayTLS := annotationTrue
-	if gs.Spec.Gateway.TLS != nil && !*gs.Spec.Gateway.TLS {
-		gatewayTLS = "false"
+	gatewayTLS := "false"
+	if gs.Spec.Gateway.TLS != nil && *gs.Spec.Gateway.TLS {
+		gatewayTLS = annotationTrue
 	}
 
 	// Build env vars
