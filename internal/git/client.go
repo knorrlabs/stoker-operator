@@ -257,9 +257,9 @@ func (g *NativeGitClient) CloneOrFetch(ctx context.Context, repoURL, ref, path s
 	defer cleanup()
 
 	if isCloned(path) {
-		return nativeFetchAndCheckout(ctx, authURL, ref, path, env)
+		return nativeFetchAndCheckout(ctx, repoURL, authURL, ref, path, env)
 	}
-	return nativeCloneAndCheckout(ctx, authURL, ref, path, env)
+	return nativeCloneAndCheckout(ctx, repoURL, authURL, ref, path, env)
 }
 
 // buildGitEnv prepares environment variables for native git commands.
@@ -348,7 +348,10 @@ func injectTokenIntoURL(repoURL, token string) string {
 	return repoURL
 }
 
-func nativeCloneAndCheckout(ctx context.Context, repoURL, ref, path string, env []string) (Result, error) {
+// nativeCloneAndCheckout performs the initial clone. cleanURL is what gets
+// persisted as the origin remote; authURL (which may embed a token) is only
+// ever passed on the command line so credentials never land in .git/config.
+func nativeCloneAndCheckout(ctx context.Context, cleanURL, authURL, ref, path string, env []string) (Result, error) {
 	// `git clone --branch` only accepts branch and tag names. For a commit
 	// SHA, init an empty repo and reuse the fetch path, which fetches the
 	// SHA directly (supported by GitHub/GitLab via allow-reachable-SHA1).
@@ -356,24 +359,29 @@ func nativeCloneAndCheckout(ctx context.Context, repoURL, ref, path string, env 
 		if _, err := runGit(ctx, []string{"init", path}, "", env); err != nil {
 			return Result{}, fmt.Errorf("git init: %w", err)
 		}
-		if _, err := runGit(ctx, []string{"remote", "add", gitRemoteOrigin, repoURL}, path, env); err != nil {
+		if _, err := runGit(ctx, []string{"remote", "add", gitRemoteOrigin, cleanURL}, path, env); err != nil {
 			return Result{}, fmt.Errorf("git remote add: %w", err)
 		}
-		return nativeFetchAndCheckout(ctx, repoURL, ref, path, env)
+		return nativeFetchAndCheckout(ctx, cleanURL, authURL, ref, path, env)
 	}
 
-	if _, err := runGit(ctx, []string{"clone", "--depth=1", "--branch", ref, repoURL, path}, "", env); err != nil {
+	if _, err := runGit(ctx, []string{"clone", "--depth=1", "--branch", ref, authURL, path}, "", env); err != nil {
 		return Result{}, fmt.Errorf("git clone --branch %s: %w", ref, err)
+	}
+	// Replace the persisted origin URL with the credential-free form.
+	if _, err := runGit(ctx, []string{"remote", "set-url", gitRemoteOrigin, cleanURL}, path, env); err != nil {
+		return Result{}, fmt.Errorf("git remote set-url: %w", err)
 	}
 	return nativeRevParse(ctx, ref, path, env)
 }
 
-func nativeFetchAndCheckout(ctx context.Context, repoURL, ref, path string, env []string) (Result, error) {
-	// Update remote URL in case it changed in the CR spec.
-	if _, err := runGit(ctx, []string{"remote", "set-url", gitRemoteOrigin, repoURL}, path, env); err != nil {
+func nativeFetchAndCheckout(ctx context.Context, cleanURL, authURL, ref, path string, env []string) (Result, error) {
+	// Keep the persisted remote URL current with the CR spec (credential-free);
+	// the fetch itself uses the auth URL directly so the token stays off disk.
+	if _, err := runGit(ctx, []string{"remote", "set-url", gitRemoteOrigin, cleanURL}, path, env); err != nil {
 		return Result{}, fmt.Errorf("git remote set-url: %w", err)
 	}
-	if _, err := runGit(ctx, []string{"fetch", "--depth=1", gitRemoteOrigin, ref}, path, env); err != nil {
+	if _, err := runGit(ctx, []string{"fetch", "--depth=1", authURL, ref}, path, env); err != nil {
 		return Result{}, fmt.Errorf("git fetch: %w", err)
 	}
 	if _, err := runGit(ctx, []string{"checkout", "-f", "FETCH_HEAD"}, path, env); err != nil {

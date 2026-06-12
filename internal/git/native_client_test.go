@@ -132,3 +132,41 @@ func TestNativeCloneBranch(t *testing.T) {
 		t.Errorf("checked-out commit = %s, want branch head %s", result.Commit, secondSHA)
 	}
 }
+
+// TestAuthURLStaysOutOfGitConfig guards the credential-handling contract:
+// the token-bearing URL form is only ever passed on the git command line,
+// while .git/config persists the credential-free URL. A persisted auth URL
+// would keep the token on disk for the lifetime of the repo volume. The
+// fixture path stands in for the auth URL; the clean URL is a sentinel that
+// is never contacted, so finding it (and only it) in config proves the
+// set-url/fetch split.
+func TestAuthURLStaysOutOfGitConfig(t *testing.T) {
+	repoPath, firstSHA, _ := initFixtureRepo(t)
+	const cleanURL = "https://example.invalid/repo.git"
+	dst := filepath.Join(t.TempDir(), "clone")
+	ctx := context.Background()
+
+	if _, err := nativeCloneAndCheckout(ctx, cleanURL, repoPath, "main", dst, nil); err != nil {
+		t.Fatalf("clone: %v", err)
+	}
+	assertOriginURL(t, dst, cleanURL, repoPath)
+
+	if _, err := nativeFetchAndCheckout(ctx, cleanURL, repoPath, firstSHA, dst, nil); err != nil {
+		t.Fatalf("fetch: %v", err)
+	}
+	assertOriginURL(t, dst, cleanURL, repoPath)
+}
+
+func assertOriginURL(t *testing.T, repoDir, want, authURL string) {
+	t.Helper()
+	cfg, err := os.ReadFile(filepath.Join(repoDir, ".git", "config"))
+	if err != nil {
+		t.Fatalf("reading .git/config: %v", err)
+	}
+	if !strings.Contains(string(cfg), want) {
+		t.Errorf("origin URL not set to clean URL %q:\n%s", want, cfg)
+	}
+	if strings.Contains(string(cfg), authURL) {
+		t.Errorf("auth URL %q persisted in .git/config:\n%s", authURL, cfg)
+	}
+}
