@@ -45,9 +45,6 @@ func main() {
 
 	// Build event recorder (non-fatal if it fails).
 	recorder, shutdownRecorder := buildEventRecorder(log)
-	if shutdownRecorder != nil {
-		defer shutdownRecorder()
-	}
 
 	// Create and run the agent.
 	a := agent.New(cfg, k8sClient, recorder)
@@ -55,7 +52,14 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	if err := a.Run(logf.IntoContext(ctx, log)); err != nil {
+	err = a.Run(logf.IntoContext(ctx, log))
+
+	// Flush queued events before exiting — os.Exit skips defers, and the
+	// error path is exactly when the failure event must reach the API server.
+	if shutdownRecorder != nil {
+		shutdownRecorder()
+	}
+	if err != nil {
 		log.Error(err, "agent exited with error")
 		os.Exit(1)
 	}

@@ -74,8 +74,9 @@ func New(cfg *Config, k8sClient client.Client, recorder record.EventRecorder) *A
 	// Build exclude patterns.
 	excludes := []string{"**/.git/**", "**/.git", "**/.gitkeep", "**/.resources/**", "**/.resources"}
 
-	// Build Ignition API client.
-	igClient := ignition.NewClient(cfg.GatewayScheme(), cfg.GatewayHost(), cfg.APIKey())
+	// Build Ignition API client. The key is read per request so a rotated
+	// Secret takes effect without restarting the agent.
+	igClient := ignition.NewClient(cfg.GatewayScheme(), cfg.GatewayHost(), cfg.APIKey)
 
 	return &Agent{
 		Config:       cfg,

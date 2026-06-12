@@ -11,20 +11,27 @@ import (
 
 // Client wraps Ignition gateway API calls.
 type Client struct {
-	BaseURL    string
-	APIKey     string
+	BaseURL string
+	// APIKey returns the current API key. Resolved per request so a rotated
+	// Secret (kubelet refreshes the mounted file) takes effect without an
+	// agent restart. May be nil when no key is configured.
+	APIKey     func() string
 	HTTPClient *http.Client
 }
 
 // NewClient creates an Ignition API client.
 // scheme should be "http" or "https", host is the gateway address (e.g., "localhost:8088").
-func NewClient(scheme, host, apiKey string) *Client {
+// apiKey is invoked on every request; pass nil for unauthenticated access.
+func NewClient(scheme, host string, apiKey func() string) *Client {
 	return &Client{
 		BaseURL: fmt.Sprintf("%s://%s", scheme, host),
 		APIKey:  apiKey,
 		HTTPClient: &http.Client{
 			Timeout: 10 * time.Second,
 			Transport: &http.Transport{
+				// The gateway is reached over the pod's loopback interface; its
+				// certificate is typically self-signed and never matches
+				// "localhost", so verification is skipped for this same-pod hop.
 				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 			},
 		},
@@ -148,7 +155,10 @@ func (c *Client) PortCheck() error {
 
 // setAuth adds the Ignition API key header to a request.
 func (c *Client) setAuth(req *http.Request) {
-	if c.APIKey != "" {
-		req.Header.Set("X-Ignition-API-Token", strings.TrimSpace(c.APIKey))
+	if c.APIKey == nil {
+		return
+	}
+	if key := strings.TrimSpace(c.APIKey()); key != "" {
+		req.Header.Set("X-Ignition-API-Token", key)
 	}
 }

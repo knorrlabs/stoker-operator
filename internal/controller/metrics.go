@@ -179,6 +179,11 @@ func observeGatewayMetrics(gs *stokerv1alpha1.GatewaySync) {
 
 	gatewaysDiscovered.WithLabelValues(name, ns).Set(float64(len(gs.Status.DiscoveredGateways)))
 
+	// Clear per-gateway series before re-setting so gateways that disappeared
+	// (pod deleted, scaled down) don't keep reporting their last value forever.
+	gatewaySyncStatus.DeletePartialMatch(prometheus.Labels{labelName: name, labelNamespace: ns})
+	gatewayLastSyncTS.DeletePartialMatch(prometheus.Labels{labelName: name, labelNamespace: ns})
+
 	syncedCount := 0
 	missingSidecarCount := 0
 	for _, gw := range gs.Status.DiscoveredGateways {

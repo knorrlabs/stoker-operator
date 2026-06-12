@@ -51,6 +51,13 @@ func (r *GatewaySyncReconciler) discoverGateways(ctx context.Context, gs *stoker
 
 	discovered := make([]stokerv1alpha1.DiscoveredGateway, 0, len(podList.Items))
 
+	// Previous status by pod name, to emit MissingSidecar only on transition
+	// instead of on every reconcile (polling reconciles every 60s by default).
+	prevStatus := make(map[string]string, len(gs.Status.DiscoveredGateways))
+	for _, gw := range gs.Status.DiscoveredGateways {
+		prevStatus[gw.PodName] = gw.SyncStatus
+	}
+
 	for _, pod := range podList.Items {
 		// Filter by annotation
 		crName, ok := pod.Annotations[stokertypes.AnnotationCRName]
@@ -78,8 +85,10 @@ func (r *GatewaySyncReconciler) discoverGateways(ctx context.Context, gs *stoker
 		syncStatus := stokertypes.SyncStatusPending
 		if pod.Annotations[stokertypes.AnnotationInject] == "true" && !hasSyncAgent(&pod) {
 			syncStatus = stokertypes.SyncStatusMissingSidecar
-			r.Recorder.Eventf(gs, corev1.EventTypeWarning, "MissingSidecar",
-				"Pod %s has inject annotation but no stoker-agent sidecar — webhook may have been unavailable during pod creation. Delete and recreate the pod.", pod.Name)
+			if prevStatus[pod.Name] != stokertypes.SyncStatusMissingSidecar {
+				r.Recorder.Eventf(gs, corev1.EventTypeWarning, "MissingSidecar",
+					"Pod %s has inject annotation but no stoker-agent sidecar — webhook may have been unavailable during pod creation. Delete and recreate the pod.", pod.Name)
+			}
 		}
 
 		// Capture ServiceAccount for auto-RBAC binding.
