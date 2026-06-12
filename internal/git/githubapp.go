@@ -25,6 +25,11 @@ type GitHubAppTokenResult struct {
 	ExpiresAt time.Time
 }
 
+// githubHTTPClient bounds the token exchange. The reconcile context carries no
+// deadline of its own, so a hung GitHub API call would otherwise block a
+// reconcile worker indefinitely.
+var githubHTTPClient = &http.Client{Timeout: 30 * time.Second}
+
 // ExchangeGitHubAppToken exchanges a GitHub App PEM private key for a short-lived
 // installation access token. It signs a JWT (RS256, 10-minute expiry), then POSTs
 // to the GitHub installations API to obtain a 1-hour bearer token.
@@ -58,7 +63,7 @@ func ExchangeGitHubAppToken(ctx context.Context, pemBytes []byte, appID, install
 	req.Header.Set("Authorization", "Bearer "+jwtStr)
 	req.Header.Set("Accept", "application/vnd.github+json")
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := githubHTTPClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("exchanging token: %w", err)
 	}
