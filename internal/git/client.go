@@ -349,6 +349,19 @@ func injectTokenIntoURL(repoURL, token string) string {
 }
 
 func nativeCloneAndCheckout(ctx context.Context, repoURL, ref, path string, env []string) (Result, error) {
+	// `git clone --branch` only accepts branch and tag names. For a commit
+	// SHA, init an empty repo and reuse the fetch path, which fetches the
+	// SHA directly (supported by GitHub/GitLab via allow-reachable-SHA1).
+	if plumbing.IsHash(ref) {
+		if _, err := runGit(ctx, []string{"init", path}, "", env); err != nil {
+			return Result{}, fmt.Errorf("git init: %w", err)
+		}
+		if _, err := runGit(ctx, []string{"remote", "add", gitRemoteOrigin, repoURL}, path, env); err != nil {
+			return Result{}, fmt.Errorf("git remote add: %w", err)
+		}
+		return nativeFetchAndCheckout(ctx, repoURL, ref, path, env)
+	}
+
 	if _, err := runGit(ctx, []string{"clone", "--depth=1", "--branch", ref, repoURL, path}, "", env); err != nil {
 		return Result{}, fmt.Errorf("git clone --branch %s: %w", ref, err)
 	}
@@ -386,7 +399,13 @@ func runGit(ctx context.Context, args []string, dir string, extraEnv []string) (
 	}
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", fmt.Errorf("%s", sanitizeOutput(string(out)))
+		msg := sanitizeOutput(string(out))
+		if msg == "" {
+			// No command output (e.g. binary missing, signal kill) — surface
+			// the exec error itself rather than an empty message.
+			msg = err.Error()
+		}
+		return "", fmt.Errorf("%s", msg)
 	}
 	return strings.TrimSpace(string(out)), nil
 }
