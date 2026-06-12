@@ -16,6 +16,25 @@ AGENT_IMG="${AGENT_IMG:-stoker-agent:e2e}"
 
 echo "=== E2E Test Setup ==="
 
+# kind_load loads an image into the kind cluster. `kind load docker-image`
+# fails with "ctr: content digest ... not found" when Docker uses the
+# containerd image store (default on newer Docker Desktop): docker's export
+# references multi-platform manifests whose blobs aren't present locally.
+# Fall back to a single-platform archive load, which always has all blobs.
+kind_load() {
+    local img="$1"
+    if kind load docker-image "${img}" --name "${KIND_CLUSTER}" 2>/dev/null; then
+        return 0
+    fi
+    echo "  kind load docker-image failed for ${img}; falling back to image-archive"
+    local arch tar
+    arch="$(docker version --format '{{.Server.Arch}}')"
+    tar="$(mktemp -t kind-img-XXXXXX).tar"
+    docker save --platform "linux/${arch}" "${img}" -o "${tar}"
+    kind load image-archive "${tar}" --name "${KIND_CLUSTER}"
+    rm -f "${tar}"
+}
+
 # 1. Create kind cluster (if not exists)
 echo "-> Checking kind cluster '${KIND_CLUSTER}'..."
 if ! kind get clusters 2>/dev/null | grep -q "^${KIND_CLUSTER}$"; then
@@ -31,7 +50,8 @@ kubectl cluster-info --context "kind-${KIND_CLUSTER}" >/dev/null 2>&1
 echo "-> Pre-pulling test fixture images..."
 docker pull alpine:3.20
 docker pull curlimages/curl:latest
-kind load docker-image alpine:3.20 curlimages/curl:latest --name "${KIND_CLUSTER}"
+kind_load alpine:3.20
+kind_load curlimages/curl:latest
 
 # 3. Build both images
 echo "-> Building controller image '${CONTROLLER_IMG}'..."
@@ -43,8 +63,8 @@ docker build -t "${AGENT_IMG}" -f Dockerfile.agent .
 
 # 4. Load images into kind
 echo "-> Loading images into kind..."
-kind load docker-image "${CONTROLLER_IMG}" --name "${KIND_CLUSTER}"
-kind load docker-image "${AGENT_IMG}" --name "${KIND_CLUSTER}"
+kind_load "${CONTROLLER_IMG}"
+kind_load "${AGENT_IMG}"
 
 # 5. Install cert-manager (required for webhook TLS)
 echo "-> Installing cert-manager..."
