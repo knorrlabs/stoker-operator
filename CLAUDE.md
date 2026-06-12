@@ -50,9 +50,10 @@ go test ./internal/syncengine/ -run TestBuildPlan -v
 ### Controller ↔ Agent Communication
 
 No shared PVC. Communication is entirely via ConfigMaps:
-- `stoker-metadata-{crName}` — controller writes git URL, commit, ref, auth type, excludes
+- `stoker-metadata-{crName}` — controller writes commit, ref, git URL, auth type, paused flag, resolved profiles JSON, gateway port/TLS
 - `stoker-status-{crName}` — agent writes sync status per gateway
-- `stoker-changes-{crName}` — agent writes change details
+
+(`stoker-changes-{crName}` is a legacy name still removed during finalizer cleanup; nothing writes it.)
 
 ### Agent 3-Layer Architecture
 
@@ -70,7 +71,7 @@ Mutating webhook at `/mutate-v1-pod` injects the agent as a native sidecar (`ini
 1. Namespace label: `stoker.io/injection=enabled`
 2. Pod annotation: `stoker.io/inject: "true"`
 
-Agent image is resolved 3-tier: pod annotation > CR `spec.agent.image` > env `DEFAULT_AGENT_IMAGE`.
+Agent image is resolved 2-tier: CR `spec.agent.image` > env `DEFAULT_AGENT_IMAGE` (the pod-annotation tier was removed in v0.6.0).
 
 ### Webhook Receiver
 
@@ -82,7 +83,7 @@ HTTP server on port 9444 (`POST /webhook/{namespace}/{crName}`). Auto-detects pa
 - **Finalizer:** `stoker.io/finalizer`
 - **Status patches:** Uses `client.MergeFrom()` to avoid resourceVersion conflicts
 - **Predicate filter:** Controller watches GatewaySync CRs with a custom predicate that passes on generation change OR annotation change (for webhook-triggered reconciles)
-- **Git auth:** Controller resolves secrets for `ls-remote`; agent reads from hardcoded mount paths `/etc/stoker/git-credentials` and `/etc/stoker/api-key`. For GitHub App auth, the controller exchanges the PEM for an installation token, caches it, and writes it to the metadata ConfigMap — agent reads the token from the ConfigMap (PEM never mounted into agent pods).
+- **Git auth:** Controller resolves secrets for `ls-remote`; agent reads from hardcoded mount paths `/etc/stoker/git-credentials` and `/etc/stoker/api-key`. For GitHub App auth, the controller exchanges the PEM for an installation token, caches it, and writes it to the Secret `stoker-github-token-{crName}`, which the webhook mounts into the agent at `/etc/stoker/git-token/token` (PEM never mounted into agent pods).
 
 ## Code Generation Workflow
 
