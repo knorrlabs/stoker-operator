@@ -41,7 +41,12 @@ func (r *GatewaySyncReconciler) ensureAgentRoleBinding(ctx context.Context, gs *
 	// Collect unique ServiceAccount names from ALL pods that reference this CR,
 	// regardless of pod phase. This avoids the chicken-and-egg problem where pods
 	// are stuck in Init waiting for RBAC but we only grant RBAC to Running pods.
-	saNames := r.collectServiceAccountsFromPods(ctx, gs)
+	// A List failure must abort: falling through would rewrite the RoleBinding
+	// subjects to the "default" baseline, revoking RBAC from live agents.
+	saNames, err := r.collectServiceAccountsFromPods(ctx, gs)
+	if err != nil {
+		return err
+	}
 	if len(saNames) == 0 {
 		// No matching pods exist yet — use "default" as a baseline subject.
 		saNames = []string{defaultServiceAccount}
@@ -55,7 +60,7 @@ func (r *GatewaySyncReconciler) ensureAgentRoleBinding(ctx context.Context, gs *
 
 	// Try to get existing RoleBinding.
 	existing := &rbacv1.RoleBinding{}
-	err := r.Get(ctx, key, existing)
+	err = r.Get(ctx, key, existing)
 
 	if errors.IsNotFound(err) {
 		// Create new RoleBinding.
@@ -118,10 +123,10 @@ func (r *GatewaySyncReconciler) ensureAgentRoleBinding(ctx context.Context, gs *
 // (via stoker.io/cr-name annotation) regardless of phase, and returns their unique SA names.
 // This is critical: pods may be in Init/Pending state waiting for RBAC before they can reach
 // Running phase, so we must grant RBAC based on ALL matching pods, not just Running ones.
-func (r *GatewaySyncReconciler) collectServiceAccountsFromPods(ctx context.Context, gs *stokerv1alpha1.GatewaySync) []string {
+func (r *GatewaySyncReconciler) collectServiceAccountsFromPods(ctx context.Context, gs *stokerv1alpha1.GatewaySync) ([]string, error) {
 	var podList corev1.PodList
 	if err := r.List(ctx, &podList, client.InNamespace(gs.Namespace)); err != nil {
-		return nil
+		return nil, fmt.Errorf("listing pods for RBAC subjects: %w", err)
 	}
 
 	seen := make(map[string]bool)
@@ -142,7 +147,7 @@ func (r *GatewaySyncReconciler) collectServiceAccountsFromPods(ctx context.Conte
 		names = append(names, name)
 	}
 	sort.Strings(names)
-	return names
+	return names, nil
 }
 
 // buildSubjects creates RoleBinding subjects for the given ServiceAccount names.
