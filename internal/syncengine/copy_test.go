@@ -100,6 +100,54 @@ func TestCopyFile_RejectsSymlinkSource(t *testing.T) {
 	}
 }
 
+// TestCopyFile_AtomicWriteLeavesNoTempFiles guards the temp-file-plus-rename
+// contract: the destination must end up with the source's content and mode,
+// and no scratch files may linger for the gateway's scan to pick up.
+func TestCopyFile_AtomicWriteLeavesNoTempFiles(t *testing.T) {
+	tmp := t.TempDir()
+	src := filepath.Join(tmp, "src.json")
+	dst := filepath.Join(tmp, "dest", "config.json")
+	writeTestFile(t, src, `{"a":1}`)
+	if err := os.Chmod(src, 0755); err != nil {
+		t.Fatalf("chmod src: %v", err)
+	}
+
+	wrote, err := copyFile(src, dst)
+	if err != nil {
+		t.Fatalf("copyFile: %v", err)
+	}
+	if !wrote {
+		t.Error("copyFile should report a write for a new destination")
+	}
+
+	got, err := os.ReadFile(dst)
+	if err != nil {
+		t.Fatalf("reading dst: %v", err)
+	}
+	if string(got) != `{"a":1}` {
+		t.Errorf("dst content = %q, want %q", got, `{"a":1}`)
+	}
+	info, err := os.Stat(dst)
+	if err != nil {
+		t.Fatalf("stat dst: %v", err)
+	}
+	if info.Mode().Perm() != 0755 {
+		t.Errorf("dst mode = %v, want 0755", info.Mode().Perm())
+	}
+
+	entries, err := os.ReadDir(filepath.Dir(dst))
+	if err != nil {
+		t.Fatalf("reading dst dir: %v", err)
+	}
+	if len(entries) != 1 {
+		names := make([]string, len(entries))
+		for i, e := range entries {
+			names[i] = e.Name()
+		}
+		t.Errorf("temp files left behind in destination dir: %v", names)
+	}
+}
+
 func TestFilesEqual_MissingFile(t *testing.T) {
 	tmp := t.TempDir()
 	a := filepath.Join(tmp, "exists.txt")
