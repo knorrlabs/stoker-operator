@@ -8,45 +8,66 @@ description: Planned features and milestones for Stoker.
 
 Current version: **v0.6.1**. [See the changelog](https://github.com/ia-eknorr/stoker-operator/blob/main/CHANGELOG.md) for release history.
 
-## v0.6.0 — Scale & Operability
+Milestones are release targets in priority order, not promises: scope can shift between minors, and the changelog records what actually shipped.
 
-Remove scaling walls and make the agent more reactive.
+## v0.7.0 - Validation and conditions
 
-- Informer-based ConfigMap watch replacing 3s polling in agent
-- Downward API annotation reader — enables `stoker.io/ref-override` and profile switching without pod restart
-- Per-gateway status ConfigMap sharding (eliminate write contention at 10+ gateways)
-- `emptyDir` size limit on agent repo volume (prevent node disk pressure from large repos)
+Reject invalid configuration at apply time, and surface agent state where `kubectl get gs` can see it.
+
+- CEL validation rules on the GatewaySync CRD: reject invalid CRs at apply time with no webhook round trip
+- Conflict detection when multiple profiles map to the same destination path (admission webhook only if CEL cannot express the check)
+- New condition types: `AgentReady`, `RefSkew`
+- `emptyDir` size limit on the agent repo volume (prevents node disk pressure from large repos)
 - Webhook receiver rate limiting
 
-## v0.7.0 — Conditions & Validation
+## v0.8.0 - Sync transparency
 
-Operational visibility and safety for fleet management.
+Answer "what did the last sync actually do" without reading agent logs.
 
-- New condition types: `AgentReady`, `RefSkew`
-- Drift detection (re-sync same commit reports unexpected changes)
-- Post-sync health verification (project state, tag providers — not just scan 200)
-- Sync diff report in changes ConfigMap
-- Conflict detection when multiple profiles map to the same destination path
-- Validating admission webhook for GatewaySync CRs (reject invalid CRs at apply time)
-- Structured audit logging (per-sync JSON record: timestamp, commit, author, gateway, files, result)
+- Structured audit logging: per-sync JSON record with timestamp, commit, author, gateway, files, and result
+- Sync diff report included in the audit record
+- Post-sync health verification: confirm project state and tag providers, not just a scan 200
+- Drift detection: re-syncing the same commit reports unexpected changes
 
-## Future Ideas
+## v0.9.0 - Scale
 
-These are valuable but not yet scoped into versioned milestones. They'll be prioritized based on user feedback.
+Remove scaling walls for larger fleets. The scale test lands first and measures the contention before any fix is built.
 
-**Safety & Trust:**
-- Designer session project-level granularity (sync Project B while designer has Project A open)
-- Pre-sync backup with auto-rollback on scan failure
+- Scale e2e test: 10+ gateways on a single CR, asserting sync latency and ConfigMap write behavior
+- Informer-based metadata ConfigMap watch replacing the agent's 3s polling
+- Per-gateway status ConfigMap sharding to eliminate write contention
+
+## v1.0.0 - Stable API
+
+v1.0.0 graduates the API from `stoker.io/v1alpha1` to `stoker.io/v1beta1`, with conversion between served versions and a deprecation window before `v1alpha1` is removed.
+
+It ships when these criteria hold:
+
+- v0.7.0 through v0.9.0 landed without breaking CRD schema changes, demonstrating the API shape is right
+- Invalid configuration is rejected at apply time, not discovered at sync time
+- Behavior at 10+ gateways per CR is measured by the scale test and documented
+- The upgrade path between minor versions is covered by e2e tests
+
+## Future ideas
+
+These are valuable but not yet scoped into a release. They'll be prioritized into post-1.0 milestones based on user feedback.
+
+**Safety and trust:**
+
+- Designer session project-level granularity (sync Project B while a designer has Project A open)
+- Pre-sync backup with automatic rollback on scan failure
 - Module management (`.modl` sync to `modules/` with `postAction: restart`)
-- Per-CR webhook HMAC secrets (replace global HMAC)
-- Git commit signature verification (GPG/SSH, IEC 62443 compliance)
+- Per-CR webhook HMAC secrets replacing the global secret
+- Git commit signature verification (GPG/SSH) for IEC 62443 compliance
 
 **Reach:**
-- Standalone agent mode (systemd/Windows service for bare-metal Ignition servers)
+
+- Standalone agent mode (systemd or Windows service for bare-metal Ignition servers)
 - Approval annotation gate for production gateways
 
 **Enterprise:**
+
+- Configurable drift action (report, restore, or alert) building on drift detection
 - Maintenance windows and change freeze schedules
-- External audit sink (SIEM integration via webhook/syslog)
-- Drift detection with configurable action (report / restore / alert)
+- External audit sink (SIEM integration via webhook or syslog)
 - Resource quotas and rate limiting for concurrent syncs
