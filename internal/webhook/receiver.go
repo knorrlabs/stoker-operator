@@ -2,6 +2,8 @@ package webhook
 
 import (
 	"context"
+	"crypto/sha256"
+	"crypto/subtle"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -34,6 +36,13 @@ type Receiver struct {
 	BearerToken string
 	Port        int32
 	Recorder    record.EventRecorder
+}
+
+// NeedLeaderElection makes the receiver run on every replica, not just the
+// leader. The receiver Service load-balances across all pods; if only the
+// leader listened, webhooks routed to followers would be refused.
+func (rv *Receiver) NeedLeaderElection() bool {
+	return false
 }
 
 // Start starts the webhook HTTP server. Blocks until ctx is cancelled.
@@ -157,7 +166,11 @@ func (rv *Receiver) authorize(r *http.Request, body []byte) bool {
 		}
 	}
 	if rv.BearerToken != "" {
-		if r.Header.Get("Authorization") == "Bearer "+rv.BearerToken {
+		// Compare SHA-256 digests in constant time: hashing first equalizes
+		// length so neither content nor token length leaks via timing.
+		got := sha256.Sum256([]byte(r.Header.Get("Authorization")))
+		want := sha256.Sum256([]byte("Bearer " + rv.BearerToken))
+		if subtle.ConstantTimeCompare(got[:], want[:]) == 1 {
 			return true
 		}
 	}
