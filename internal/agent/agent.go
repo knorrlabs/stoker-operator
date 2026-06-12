@@ -634,6 +634,18 @@ func (a *Agent) syncOnce(ctx context.Context, commit, ref string, isInitial bool
 		log.V(1).Info("status written to ConfigMap", "gateway", a.Config.GatewayName, "status", syncStatus)
 	}
 
+	// A failed scan means files are on disk but the gateway never loaded them.
+	// Return an error WITHOUT recording the commit as synced, so the caller's
+	// backoff retries until the gateway applies the config — otherwise the
+	// gateway sits in Error until the next commit happens to arrive.
+	if syncStatus == stokertypes.SyncStatusError {
+		a.Metrics.SyncTotal.WithLabelValues(profileName, "error").Inc()
+		a.Metrics.LastSyncSuccess.Set(0)
+		a.event(corev1.EventTypeWarning, conditions.ReasonSyncFailed,
+			"Sync on %s copied files but scan failed: %s", a.Config.GatewayName, errorMsg)
+		return fmt.Errorf("scan after sync: %s", errorMsg)
+	}
+
 	a.Metrics.SyncTotal.WithLabelValues(profileName, "success").Inc()
 	a.Metrics.LastSyncTimestamp.Set(float64(time.Now().Unix()))
 	a.Metrics.LastSyncSuccess.Set(1)
