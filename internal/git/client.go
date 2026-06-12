@@ -17,7 +17,10 @@ import (
 	transportclient "github.com/go-git/go-git/v5/plumbing/transport/client"
 )
 
-const gitRemoteOrigin = "origin"
+const (
+	gitRemoteOrigin = "origin"
+	gitSubcmdRemote = "remote"
+)
 
 // Result holds the outcome of a clone or fetch operation.
 type Result struct {
@@ -359,7 +362,7 @@ func nativeCloneAndCheckout(ctx context.Context, cleanURL, authURL, ref, path st
 		if _, err := runGit(ctx, []string{"init", path}, "", env); err != nil {
 			return Result{}, fmt.Errorf("git init: %w", err)
 		}
-		if _, err := runGit(ctx, []string{"remote", "add", gitRemoteOrigin, cleanURL}, path, env); err != nil {
+		if _, err := runGit(ctx, []string{gitSubcmdRemote, "add", gitRemoteOrigin, cleanURL}, path, env); err != nil {
 			return Result{}, fmt.Errorf("git remote add: %w", err)
 		}
 		return nativeFetchAndCheckout(ctx, cleanURL, authURL, ref, path, env)
@@ -369,7 +372,7 @@ func nativeCloneAndCheckout(ctx context.Context, cleanURL, authURL, ref, path st
 		return Result{}, fmt.Errorf("git clone --branch %s: %w", ref, err)
 	}
 	// Replace the persisted origin URL with the credential-free form.
-	if _, err := runGit(ctx, []string{"remote", "set-url", gitRemoteOrigin, cleanURL}, path, env); err != nil {
+	if _, err := runGit(ctx, []string{gitSubcmdRemote, "set-url", gitRemoteOrigin, cleanURL}, path, env); err != nil {
 		return Result{}, fmt.Errorf("git remote set-url: %w", err)
 	}
 	return nativeRevParse(ctx, ref, path, env)
@@ -378,7 +381,7 @@ func nativeCloneAndCheckout(ctx context.Context, cleanURL, authURL, ref, path st
 func nativeFetchAndCheckout(ctx context.Context, cleanURL, authURL, ref, path string, env []string) (Result, error) {
 	// Keep the persisted remote URL current with the CR spec (credential-free);
 	// the fetch itself uses the auth URL directly so the token stays off disk.
-	if _, err := runGit(ctx, []string{"remote", "set-url", gitRemoteOrigin, cleanURL}, path, env); err != nil {
+	if _, err := runGit(ctx, []string{gitSubcmdRemote, "set-url", gitRemoteOrigin, cleanURL}, path, env); err != nil {
 		return Result{}, fmt.Errorf("git remote set-url: %w", err)
 	}
 	if _, err := runGit(ctx, []string{"fetch", "--depth=1", authURL, ref}, path, env); err != nil {
