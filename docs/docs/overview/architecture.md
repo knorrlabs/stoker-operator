@@ -88,11 +88,11 @@ The sync engine is intentionally Kubernetes-unaware and Ignition-unaware, making
 
 ## Communication via ConfigMaps
 
-The controller and agents never communicate directly. All state flows through three ConfigMaps per CR:
+The controller and agents never communicate directly. All state flows through two ConfigMaps per CR:
 
 | ConfigMap | Writer | Reader | Contents |
 |-----------|--------|--------|----------|
-| `stoker-metadata-{crName}` | Controller | Agent | Git URL, resolved commit, ref, auth type, exclude patterns, profile mappings |
+| `stoker-metadata-{crName}` | Controller | Agent | Git URL, resolved commit, ref, auth type, paused flag, resolved profiles (mappings, excludes, vars) |
 | `stoker-status-{crName}` | Agent | Controller | Per-gateway sync status, synced commit, file counts, errors, change details |
 
 This design means no shared PVC is needed, and agents can run in any pod without special volume configuration beyond the standard `/ignition-data/` mount.

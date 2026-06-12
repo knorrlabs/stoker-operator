@@ -20,14 +20,6 @@ const (
 	// If unset, the "default" profile is used.
 	AnnotationProfile = AnnotationPrefix + "/profile"
 
-	// AnnotationRefOverride overrides the git ref for this pod only.
-	// Read by the agent sidecar, NOT the controller. The agent resolves
-	// the ref independently via ls-remote and syncs to that commit instead
-	// of the metadata ConfigMap's ref. The controller detects the skew
-	// (syncedRef != lastSyncRef) and sets a RefSkew warning condition.
-	// Intended for dev/test gateways in production namespaces.
-	AnnotationRefOverride = AnnotationPrefix + "/ref-override"
-
 	// CR annotations — set by the webhook receiver on the GatewaySync CR (not by users).
 
 	// AnnotationRequestedRef is set by the webhook receiver to request a ref update.
