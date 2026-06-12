@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
@@ -65,6 +66,11 @@ type GatewaySyncReconciler struct {
 	Recorder          record.EventRecorder
 	AutoBindAgentRBAC bool
 
+	// mu guards tokenCache and backoff. Reconcile runs with
+	// MaxConcurrentReconciles > 1, so reconciles for different CRs
+	// mutate these maps concurrently.
+	mu sync.Mutex
+
 	// tokenCache holds GitHub App installation tokens keyed by "appID:installationID".
 	tokenCache map[string]cachedToken
 
@@ -119,6 +125,7 @@ func (r *GatewaySyncReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			if err := r.cleanupOwnedResources(ctx, &gs); err != nil {
 				return ctrl.Result{}, err
 			}
+			r.resetBackoff(req.NamespacedName)
 			controllerutil.RemoveFinalizer(&gs, stokertypes.Finalizer)
 			return ctrl.Result{}, r.Update(ctx, &gs)
 		}
@@ -294,9 +301,9 @@ func (r *GatewaySyncReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 // backoffDelay returns the requeue delay based on consecutive failures.
 // Sequence: 30s, 60s, 120s, 240s, 300s (capped).
 func (r *GatewaySyncReconciler) backoffDelay(key types.NamespacedName) time.Duration {
-	if r.backoff == nil {
-		return 30 * time.Second
-	}
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	state, ok := r.backoff[key]
 	if !ok || state.failureCount == 0 {
 		return 30 * time.Second
@@ -312,6 +319,9 @@ func (r *GatewaySyncReconciler) backoffDelay(key types.NamespacedName) time.Dura
 }
 
 func (r *GatewaySyncReconciler) recordFailure(key types.NamespacedName) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	if r.backoff == nil {
 		r.backoff = make(map[types.NamespacedName]*backoffState)
 	}
@@ -325,9 +335,30 @@ func (r *GatewaySyncReconciler) recordFailure(key types.NamespacedName) {
 }
 
 func (r *GatewaySyncReconciler) resetBackoff(key types.NamespacedName) {
-	if r.backoff != nil {
-		delete(r.backoff, key)
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	delete(r.backoff, key)
+}
+
+// cachedGitHubToken returns the cached GitHub App token for a cache key, if present.
+func (r *GatewaySyncReconciler) cachedGitHubToken(cacheKey string) (cachedToken, bool) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	cached, ok := r.tokenCache[cacheKey]
+	return cached, ok
+}
+
+// storeGitHubToken caches a GitHub App installation token.
+func (r *GatewaySyncReconciler) storeGitHubToken(cacheKey string, token cachedToken) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if r.tokenCache == nil {
+		r.tokenCache = make(map[string]cachedToken)
 	}
+	r.tokenCache[cacheKey] = token
 }
 
 // validVarKey matches Go identifiers: letters, digits, underscores; must start with letter or underscore.
@@ -506,7 +537,7 @@ func (r *GatewaySyncReconciler) resolveGitHubAppToken(ctx context.Context, gs *s
 	cacheKey := fmt.Sprintf("%d:%d", appAuth.AppID, appAuth.InstallationID)
 
 	// Return cached token if still valid.
-	if cached, ok := r.tokenCache[cacheKey]; ok && time.Now().Before(cached.expiry.Add(-tokenRefreshBuffer)) {
+	if cached, ok := r.cachedGitHubToken(cacheKey); ok && time.Now().Before(cached.expiry.Add(-tokenRefreshBuffer)) {
 		return cached.token, nil
 	}
 
@@ -527,10 +558,7 @@ func (r *GatewaySyncReconciler) resolveGitHubAppToken(ctx context.Context, gs *s
 	}
 
 	// Cache the token.
-	if r.tokenCache == nil {
-		r.tokenCache = make(map[string]cachedToken)
-	}
-	r.tokenCache[cacheKey] = cachedToken{token: result.Token, expiry: result.ExpiresAt}
+	r.storeGitHubToken(cacheKey, cachedToken{token: result.Token, expiry: result.ExpiresAt})
 
 	githubAppTokenExpiry.WithLabelValues(
 		fmt.Sprintf("%d", appAuth.AppID),
@@ -659,7 +687,7 @@ func (r *GatewaySyncReconciler) ensureMetadataConfigMap(ctx context.Context, gs 
 	if gs.Spec.Git.Auth != nil && gs.Spec.Git.Auth.GitHubApp != nil {
 		appAuth := gs.Spec.Git.Auth.GitHubApp
 		cacheKey := fmt.Sprintf("%d:%d", appAuth.AppID, appAuth.InstallationID)
-		if cached, ok := r.tokenCache[cacheKey]; ok {
+		if cached, ok := r.cachedGitHubToken(cacheKey); ok {
 			if err := r.ensureGitHubTokenSecret(ctx, gs, cached.token); err != nil {
 				return fmt.Errorf("ensuring GitHub App token Secret: %w", err)
 			}
@@ -829,7 +857,7 @@ func (r *GatewaySyncReconciler) requeueInterval(gs *stokerv1alpha1.GatewaySync) 
 	if gs.Spec.Git.Auth != nil && gs.Spec.Git.Auth.GitHubApp != nil {
 		appAuth := gs.Spec.Git.Auth.GitHubApp
 		cacheKey := fmt.Sprintf("%d:%d", appAuth.AppID, appAuth.InstallationID)
-		if cached, ok := r.tokenCache[cacheKey]; ok {
+		if cached, ok := r.cachedGitHubToken(cacheKey); ok {
 			tokenRefresh := time.Until(cached.expiry) - tokenRefreshBuffer
 			if tokenRefresh > 0 && (interval == 0 || tokenRefresh < interval) {
 				interval = tokenRefresh
