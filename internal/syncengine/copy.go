@@ -13,6 +13,8 @@ import (
 // Returns true if the file was actually written (new or changed).
 // Symlinks at src are rejected: a malicious repo could symlink to credential
 // mounts or other host paths and have them copied into the destination.
+// The write goes through a temp file in dst's directory followed by rename,
+// so the gateway never observes a truncated file if the agent dies mid-copy.
 func copyFile(src, dst string) (bool, error) {
 	srcInfo, err := os.Lstat(src)
 	if err != nil {
@@ -37,17 +39,28 @@ func copyFile(src, dst string) (bool, error) {
 	}
 	defer func() { _ = in.Close() }()
 
-	out, err := os.Create(dst)
+	out, err := os.CreateTemp(filepath.Dir(dst), filepath.Base(dst)+".stoker-tmp-*")
 	if err != nil {
-		return false, fmt.Errorf("creating destination %s: %w", dst, err)
+		return false, fmt.Errorf("creating temp file for %s: %w", dst, err)
 	}
-	defer func() { _ = out.Close() }()
+	tmpName := out.Name()
+	defer func() {
+		_ = out.Close()
+		_ = os.Remove(tmpName) // no-op after successful rename
+	}()
 
 	if _, err := io.Copy(out, in); err != nil {
 		return false, fmt.Errorf("copying %s to %s: %w", src, dst, err)
 	}
-
-	_ = os.Chmod(dst, srcInfo.Mode())
+	if err := out.Close(); err != nil {
+		return false, fmt.Errorf("closing temp file for %s: %w", dst, err)
+	}
+	if err := os.Chmod(tmpName, srcInfo.Mode()); err != nil {
+		return false, fmt.Errorf("setting mode on %s: %w", dst, err)
+	}
+	if err := os.Rename(tmpName, dst); err != nil {
+		return false, fmt.Errorf("renaming temp file to %s: %w", dst, err)
+	}
 
 	return true, nil
 }

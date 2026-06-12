@@ -27,15 +27,12 @@ func StatusConfigMapName(crName string) string {
 
 // Metadata holds the data read from the metadata ConfigMap.
 type Metadata struct {
-	Commit          string
-	Ref             string
-	Trigger         string
-	GitURL          string
-	Paused          string
-	ExcludePatterns string
-	Profiles        string
-	AuthType        string
-	GitToken        string
+	Commit   string
+	Ref      string
+	GitURL   string
+	Paused   string
+	Profiles string
+	AuthType string
 }
 
 // ReadMetadataConfigMap reads the metadata ConfigMap and returns its data.
@@ -55,15 +52,12 @@ func ReadMetadataConfigMap(ctx context.Context, c client.Client, namespace, crNa
 	}
 
 	return &Metadata{
-		Commit:          cm.Data["commit"],
-		Ref:             cm.Data["ref"],
-		Trigger:         cm.Data["trigger"],
-		GitURL:          cm.Data["gitURL"],
-		Paused:          cm.Data["paused"],
-		ExcludePatterns: cm.Data["excludePatterns"],
-		Profiles:        cm.Data["profiles"],
-		AuthType:        cm.Data["authType"],
-		GitToken:        cm.Data["gitToken"],
+		Commit:   cm.Data["commit"],
+		Ref:      cm.Data["ref"],
+		GitURL:   cm.Data["gitURL"],
+		Paused:   cm.Data["paused"],
+		Profiles: cm.Data["profiles"],
+		AuthType: cm.Data["authType"],
 	}, nil
 }
 
