@@ -117,6 +117,7 @@ Kubernetes: `>= 1.28.0`
 | podMonitor.interval | string | `""` | Scrape interval. Falls back to the Prometheus default if empty. |
 | podMonitor.labels | object | `{}` | Additional labels for the PodMonitor (e.g. for Prometheus selector matching). |
 | podMonitor.scrapeTimeout | string | `""` | Scrape timeout. Falls back to the Prometheus default if empty. |
+| priorityClassName | string | `""` | PriorityClass for the controller pod, e.g. system-cluster-critical. Protects the operator from eviction under node pressure. |
 | prometheusRule | object | `{"additionalRules":[],"enabled":false,"labels":{}}` | PrometheusRule for Stoker alerting rules. Requires the prometheus-operator CRDs to be installed in the cluster. |
 | prometheusRule.additionalRules | list | `[]` | Additional alerting rules appended to the default set. |
 | prometheusRule.enabled | bool | `false` | Create a PrometheusRule resource with default alerts. |

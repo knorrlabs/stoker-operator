@@ -239,3 +239,8 @@ tolerations: []
 
 # -- Affinity rules for scheduling the controller pod.
 affinity: {}
+
+# -- PriorityClass for the controller pod, e.g. system-cluster-critical.
+# Protects the operator from eviction under node pressure.
+priorityClassName: ""
+

@@ -1,6 +1,9 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
+  # The name is load-bearing: the controller's auto-RBAC binds RoleBindings to
+  # the ClusterRole named "stoker-agent" (agentClusterRoleName in
+  # internal/controller/rbac.go). Renaming it here silently breaks auto-RBAC.
   name: stoker-agent
   labels:
     {{- include "stoker-operator.labels" . | nindent 4 }}
