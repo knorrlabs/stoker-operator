@@ -28,7 +28,7 @@ The controller exposes metrics on port 8443 (the same HTTPS endpoint used by con
 | `stoker_controller_gateway_sync_status` | Gauge | `name`, `namespace`, `gateway` | Per-gateway sync state (0=Pending, 1=Synced, 2=Error, 3=MissingSidecar) |
 | `stoker_controller_gateway_last_sync_timestamp_seconds` | Gauge | `name`, `namespace`, `gateway` | Unix timestamp of the last agent sync per gateway |
 | `stoker_controller_gateways_missing_sidecar` | Gauge | `name`, `namespace` | Count of gateways without the stoker-agent sidecar |
-| `stoker_controller_github_app_token_expiry` | Gauge | `name`, `namespace` | Unix timestamp when the cached GitHub App token expires |
+| `stoker_controller_github_app_token_expiry_timestamp_seconds` | Gauge | `app_id`, `installation_id` | Unix timestamp when the cached GitHub App token expires |
 
 ### Agent metrics
 
