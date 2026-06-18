@@ -99,9 +99,10 @@ kubectl logs -n stoker-system deploy/stoker-stoker-operator-controller-manager |
 - **Scan API failure:** check gateway port and TLS settings match `spec.gateway.port` and `spec.gateway.tls`
 - **API key format:** the Ignition API key must be in `name:secret` format (e.g., `ignition-api-key:CYCSdRg...`), not just the secret portion
 - **Gateway not ready:** the Ignition gateway may still be starting up
+- **Agent backoff:** on consecutive git-fetch or sync failures, the agent backs off exponentially (30s → 60s → 120s → 240s → 5min cap). While backing off, incoming sync triggers are dropped and the agent records `stoker_agent_sync_skipped_total{reason="backoff"}`. The backoff resets automatically on the next successful sync. Check agent logs for `backing off` messages to confirm this state.
 
 ```bash
-kubectl logs <pod> -n <ns> -c stoker-agent | grep -i "scan\|error"
+kubectl logs <pod> -n <ns> -c stoker-agent | grep -i "scan\|error\|backing off"
 ```
 
 ### Scan failures (non-200 response)
