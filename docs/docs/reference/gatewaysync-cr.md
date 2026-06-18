@@ -52,11 +52,7 @@ spec:
             type: dir
         syncPeriod: 60
         designerSessionPolicy: wait
-  agent:
-    image:
-      repository: ghcr.io/ia-eknorr/stoker-agent
-      tag: latest
-      pullPolicy: IfNotPresent
+  # agent: {}  # optional — sidecar image defaults come from the Helm chart's agentImage values
   paused: false
 ```
 
@@ -129,7 +125,7 @@ auth:
 | `githubApp.installationId` | integer | Yes | — | GitHub App installation ID |
 | `githubApp.privateKeySecretRef.name` | string | Yes | — | Name of the Secret containing the PEM key |
 | `githubApp.privateKeySecretRef.key` | string | Yes | — | Key within the Secret |
-| `githubApp.apiBaseURL` | string | No | `https://api.github.com` | GitHub API base URL (set for GitHub Enterprise Server) |
+| `githubApp.apiBaseURL` | string | No | — | GitHub API base URL (runtime default: `https://api.github.com`). Set this for GitHub Enterprise Server. |
 
 The controller exchanges the PEM private key for a short-lived installation access token (1-hour expiry), caches it with a 5-minute pre-expiry refresh, and writes it to a controller-managed Secret (`stoker-github-token-{crName}`). The agent mounts this Secret at `/etc/stoker/git-token/token`. The PEM key never leaves the controller namespace; agent pods do not mount the PEM secret.
 
@@ -174,7 +170,7 @@ The `**/.resources/**` pattern is always enforced by the agent even if omitted f
 
 ### `spec.sync.profiles`
 
-A map of named sync profiles. Each key is the profile name, referenced by the `stoker.io/profile` pod annotation. Gateways without a `stoker.io/profile` annotation use the profile named `default` if one exists.
+A map of named sync profiles. Each key is the profile name, referenced by the `stoker.io/profile` pod annotation. Gateways without a `stoker.io/profile` annotation use the profile named `default` if one exists. At least one profile must be defined; the API server rejects an empty map.
 
 ```yaml
 sync:
@@ -335,11 +331,13 @@ Controls sync behavior when Ignition Designer sessions are active on the gateway
 
 ## `spec.agent`
 
+Omitting `spec.agent` entirely is the normal case. When `spec.agent.image` is not set, the webhook resolves the sidecar image from the `DEFAULT_AGENT_IMAGE` environment variable, which the Helm chart sets via its `agentImage` values. Specify `spec.agent.image.*` only when overriding the chart default.
+
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
-| `image.repository` | string | No | `ghcr.io/ia-eknorr/stoker-agent` | Agent container image repository |
-| `image.tag` | string | No | `latest` | Agent container image tag |
-| `image.pullPolicy` | string | No | `IfNotPresent` | Image pull policy |
+| `image.repository` | string | No | — | Agent container image repository |
+| `image.tag` | string | No | — | Agent container image tag |
+| `image.pullPolicy` | string | No | — | Image pull policy |
 | `resources` | object | No | — | Agent container resource requirements |
 
 ## `spec.paused`
@@ -363,14 +361,36 @@ The GatewaySync CR status is managed by the controller and reports:
 
 | Field | Description |
 |-------|-------------|
+| `observedGeneration` | Most recent spec generation observed by the controller |
 | `lastSyncRef` | The git ref that was last resolved |
 | `lastSyncCommit` | Full 40-character git commit SHA |
 | `lastSyncCommitShort` | Abbreviated 7-character commit SHA (used in printer columns) |
 | `lastSyncTime` | Timestamp of the last commit change (only updates when the resolved commit changes) |
 | `refResolutionStatus` | `NotResolved`, `Resolving`, `Resolved`, or `Error` |
 | `profileCount` | Number of profiles defined in `spec.sync.profiles` |
-| `discoveredGateways` | List of gateway pods with per-gateway sync status, commit, projects synced |
+| `discoveredGateways` | List of gateway pods discovered by the controller. See [sub-table below](#discoveredgateways-fields). |
 | `conditions` | Standard Kubernetes conditions: `RefResolved`, `AllGatewaysSynced`, and `Ready` |
+
+### `discoveredGateways` fields
+
+Each entry in `status.discoveredGateways` represents a single discovered gateway pod:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string | Gateway identity (from `stoker.io/gateway-name` annotation or `app.kubernetes.io/name` label) |
+| `namespace` | string | Namespace of the gateway pod |
+| `podName` | string | Name of the gateway pod |
+| `serviceAccountName` | string | ServiceAccount used by the gateway pod |
+| `profile` | string | Name of the sync profile selected by this gateway |
+| `syncStatus` | string | Current sync state: `Pending`, `Synced`, `Error`, or `MissingSidecar` |
+| `lastSyncTime` | timestamp | When this gateway was last synced |
+| `lastSyncDuration` | string | How long the last sync took (e.g., `"1.23s"`) |
+| `syncedCommit` | string | Full git commit SHA currently synced to this gateway |
+| `syncedRef` | string | Git ref currently synced to this gateway |
+| `agentVersion` | string | Version of the sync agent sidecar on this gateway |
+| `lastScanResult` | string | Summary of the last Ignition scan API response |
+| `filesChanged` | int32 | Number of files changed in the last sync |
+| `projectsSynced` | []string | Ignition project names synced to this gateway |
 
 ### Printer columns
 
@@ -390,6 +410,8 @@ Gateways progress through these sync states:
 1. **Pending:** initial sync completes (files written) but gateway hasn't been validated yet
 2. **Synced:** the Ignition scan API confirmed both `/scan/projects` and `/scan/config` returned HTTP 200
 3. **Error:** the scan API returned a non-200 status or was unreachable
+
+A gateway can also enter the **MissingSidecar** state when the stoker-agent sidecar container is absent from the discovered pod. This is not a progression from the states above; it indicates the mutating webhook did not inject the sidecar (e.g., the pod predates the webhook or the `stoker.io/inject` annotation is missing).
 
 The `AllGatewaysSynced` condition is `True` only when all discovered gateways report `Synced`.
 
