@@ -30,7 +30,7 @@ helm upgrade stoker oci://ghcr.io/ia-eknorr/charts/stoker-operator \
 
 The controller runs an HTTP server (port 9444) that accepts webhook payloads. When a payload arrives, the receiver:
 
-1. Validates auth (if configured — HMAC or bearer token, first match wins)
+1. Validates auth (HMAC or bearer token if configured; first match wins)
 2. Extracts the ref from the payload (auto-detects format)
 3. Annotates the GatewaySync CR with the requested ref
 4. The controller's reconciliation predicate detects the annotation change and triggers an immediate sync
@@ -41,8 +41,8 @@ The controller runs an HTTP server (port 9444) that accepts webhook payloads. Wh
 POST /webhook/{namespace}/{crName}
 ```
 
-- `{namespace}` — the namespace of the GatewaySync CR
-- `{crName}` — the name of the GatewaySync CR
+- `{namespace}`: the namespace of the GatewaySync CR
+- `{crName}`: the name of the GatewaySync CR
 
 When `webhookReceiver.enabled` is true, the Helm chart creates a Service for the webhook receiver automatically.
 
@@ -79,7 +79,7 @@ kubectl port-forward -n stoker-system svc/stoker-stoker-operator-webhook-receive
 
 ## Payload formats
 
-The receiver auto-detects the payload format. No configuration needed — just point your webhook at the endpoint.
+The receiver auto-detects the payload format. No configuration needed.
 
 ### GitHub release
 
@@ -136,7 +136,7 @@ Configure at least one auth method for production. If both are set, either metho
 
 ### HMAC (GitHub-compatible)
 
-HMAC validates the `X-Hub-Signature-256` header — the standard used by GitHub webhooks. Use this when your sender can compute signatures (GitHub, custom senders).
+HMAC validates the `X-Hub-Signature-256` header, the standard used by GitHub webhooks. Use this when your sender can compute signatures (GitHub, custom senders).
 
 ```yaml
 webhookReceiver:
@@ -149,7 +149,7 @@ webhookReceiver:
 
 ### Bearer token
 
-Any HTTP client that can set headers can authenticate with a static bearer token. The receiver validates the `Authorization: Bearer <token>` header — no signature computation required.
+Any HTTP client that can set headers can authenticate with a static bearer token. The receiver validates the `Authorization: Bearer <token>` header; no signature computation required.
 
 ```yaml
 webhookReceiver:
@@ -211,5 +211,5 @@ spec:
 
 ## Next steps
 
-- [Helm Values](../reference/helm-values.md#push-receiver-webhook) — webhook receiver configuration
-- [Annotations Reference](../reference/annotations.md) — CR annotations set by the receiver
+- [Helm Values](../reference/helm-values.md#push-receiver-webhook): webhook receiver configuration
+- [Annotations Reference](../reference/annotations.md): CR annotations set by the receiver

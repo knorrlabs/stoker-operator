@@ -6,7 +6,7 @@ description: Run Stoker across multiple sites or environments with per-gateway c
 
 # Multi-Site Deployment
 
-This guide covers the patterns for deploying Stoker across multiple sites, environments, or regions — where each gateway needs unique configuration while sharing most of the repository structure.
+This guide covers the patterns for deploying Stoker across multiple sites, environments, or regions, where each gateway needs unique configuration while sharing most of the repository structure.
 
 ## The problem: unique systemName
 
@@ -14,8 +14,8 @@ Every Ignition gateway requires a unique `systemName` in `config/resources/local
 
 Stoker solves this in two ways depending on whether you prefer to modify source files or not:
 
-- **Content templating** (`template: true`) — author `{{.GatewayName}}` directly in the JSON source file. See the [Content Templating guide](./content-templating.md).
-- **JSON patches** (`patches`) — keep source files unmodified in git; the agent sets `systemName` at sync time using a dot-notation path. See the [JSON Patches guide](./json-patches.md).
+- **Content templating** (`template: true`): author `{{.GatewayName}}` directly in the JSON source file. See the [Content Templating guide](./content-templating.md).
+- **JSON patches** (`patches`): keep source files unmodified in git; the agent sets `systemName` at sync time using a dot-notation path. See the [JSON Patches guide](./json-patches.md).
 
 ### Patches approach (source file unchanged)
 

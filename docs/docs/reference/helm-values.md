@@ -100,7 +100,7 @@ The webhook injects the agent sidecar into pods with annotation `stoker.io/injec
 | `webhookReceiver.ingress.ingressClassName` | string | `""` | Ingress class name (e.g. `nginx`, `traefik`, `alb`). Uses cluster default when empty. |
 | `webhookReceiver.ingress.annotations` | object | `{}` | Annotations for the Ingress resource (ingress controller config, cert-manager, etc.). |
 | `webhookReceiver.ingress.hosts` | list | `[]` | List of `{host, paths[]}` entries. Each path requires `path` and `pathType`. |
-| `webhookReceiver.ingress.tls` | list | `[]` | TLS configuration — list of `{secretName, hosts[]}` entries. |
+| `webhookReceiver.ingress.tls` | list | `[]` | TLS configuration: list of `{secretName, hosts[]}` entries. |
 
 The push receiver accepts `POST /webhook/{namespace}/{crName}` and auto-detects payload format from GitHub releases, ArgoCD notifications, Kargo promotions, or generic `{"ref": "..."}` bodies. If both HMAC and bearer token are configured, either method can authorize a request.
 

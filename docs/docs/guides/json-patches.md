@@ -6,13 +6,13 @@ description: Apply targeted JSON field updates at sync time without modifying so
 
 # JSON Patches
 
-JSON patches let the agent surgically update specific fields in JSON files as they are staged — without modifying the source files in git. This is ideal for values that differ per gateway (database hosts, system names, port numbers) when you want precise control over exactly which fields change, rather than treating an entire file as a Go template.
+JSON patches let the agent update specific fields in JSON files at staging time, without modifying source files in git. Use them when per-gateway values (database hosts, system names, port numbers) need to differ and you want surgical control over exactly which fields change, rather than treating an entire file as a Go template.
 
 ## How it works
 
 Add a `patches` block to any mapping. Each patch specifies:
-- **`file`** — which file(s) to patch, expressed as a path relative to the mapping's destination (supports doublestar globs). For file mappings, `file` can be omitted and defaults to the mapped file itself.
-- **`set`** — a map of [sjson-style dot-notation paths](https://github.com/tidwall/sjson#path-syntax) to values. Values may contain Go template syntax (the same variables available in `template: true`).
+- **`file`:** which file(s) to patch, expressed as a path relative to the mapping's destination (supports doublestar globs). For file mappings, `file` can be omitted and defaults to the mapped file itself.
+- **`set`:** a map of [sjson-style dot-notation paths](https://github.com/tidwall/sjson#path-syntax) to values. Values may contain Go template syntax (the same variables available in `template: true`).
 
 The agent copies files from git into staging, then applies patches in-place before writing to `/ignition-data/`. Source files in git are never modified.
 
@@ -26,7 +26,7 @@ The agent copies files from git into staging, then applies patches in-place befo
 | Updating database hosts, system names, ports in JSON | **`patches`** |
 | Files mix binary and text (images alongside JSON) | **`patches`** on JSON only |
 
-`patches` only works on valid JSON files and will error on anything else — including files that fail JSON parsing. `template: true` works on any text file but requires `{{...}}` syntax to already be in the source.
+`patches` only works on valid JSON files and will error on anything else, including files that fail JSON parsing. `template: true` works on any text file but requires `{{...}}` syntax to already be in the source.
 
 ## Patch value type inference
 
@@ -40,7 +40,7 @@ Patch values are resolved as Go templates first, then type-inferred before being
 | `"my-gateway"` | string (fallback) | `"my-gateway"` |
 | `"null"` | null | `null` |
 
-This means you can set boolean flags, numeric ports, and string values without quoting — just write the value you want.
+This means you can set boolean flags, numeric ports, and string values without quoting: just write the value you want.
 
 ## Examples
 
@@ -102,7 +102,7 @@ Every `.json` file in `config/db-connections/` gets its `host` and `port` fields
 
 ### Multiple patches on one mapping
 
-A single mapping can carry multiple patch blocks — each targets different files or sets different fields:
+A single mapping can carry multiple patch blocks, each targeting different files or setting different fields:
 
 ```yaml
 mappings:
@@ -150,7 +150,7 @@ Profile-level `vars` override default `vars` per-key, so you can have a developm
 ## Type inference
 
 :::note
-The `type` field in a mapping is optional. When omitted, the agent calls `os.Stat` on the source path at sync time to determine whether it is a file or directory. If you specify `type`, it is validated against the filesystem — a mismatch produces an error. If the source path does not exist and `required: false`, the agent falls back to `"dir"` and skips the mapping silently.
+The `type` field in a mapping is optional. When omitted, the agent calls `os.Stat` on the source path at sync time to determine whether it is a file or directory. If you specify `type`, it is validated against the filesystem; a mismatch produces an error. If the source path does not exist and `required: false`, the agent falls back to `"dir"` and skips the mapping silently.
 :::
 
 ## sjson path syntax
@@ -164,7 +164,7 @@ Paths follow [tidwall/sjson](https://github.com/tidwall/sjson#path-syntax) dot-n
 | `networkInterfaces.0.address` | Array element by index |
 | `tags.-1` | Append to array |
 
-Paths are case-sensitive. Keys containing `.` or special characters must be escaped — see the sjson docs for details.
+Paths are case-sensitive. Keys containing `.` or special characters must be escaped. See the sjson docs for details.
 
 ## Patches and `template: true` together
 

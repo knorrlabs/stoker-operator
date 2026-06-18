@@ -42,7 +42,7 @@ You should see a `controller-manager` pod in `Running` state.
 
 ## 2. Create secrets
 
-This quickstart uses [`ia-eknorr/test-ignition-project`](https://github.com/ia-eknorr/test-ignition-project), a public example repository created for this guide. It contains an Ignition stack with two gateway configurations — `ignition-blue` and `ignition-red` — each with their own projects and config directories. We'll sync `ignition-blue` to a single gateway.
+This quickstart uses [`ia-eknorr/test-ignition-project`](https://github.com/ia-eknorr/test-ignition-project), a public example repository created for this guide. It contains an Ignition stack with two gateway configurations (`ignition-blue` and `ignition-red`), each with their own projects and config directories. We'll sync `ignition-blue` to a single gateway.
 
 Create a namespace and a secret so the agent can authenticate with the gateway's scan API. The example repository includes a pre-configured API token resource:
 
@@ -53,7 +53,7 @@ kubectl create secret generic gw-api-key -n quickstart \
 ```
 
 :::warning
-This API key is for the example repository only. Never reuse example credentials — [generate unique API tokens](https://www.docs.inductiveautomation.com/docs/8.3/platform/security/api-keys#using-api-keys) for each gateway in your own deployments.
+This API key is for the example repository only. Never reuse example credentials. [Generate unique API tokens](https://www.docs.inductiveautomation.com/docs/8.3/platform/security/api-keys#using-api-keys) for each gateway in your own deployments.
 :::
 
 No git credentials are needed since we're using a public repository.
@@ -141,7 +141,7 @@ The key annotations:
 | `stoker.io/profile` | `"standard"` | Selects the sync profile from `spec.sync.profiles` |
 
 :::tip Why install the gateway last?
-The Stoker webhook injects the agent sidecar when a pod is created. By installing the operator and CRs first, the webhook is ready to inject on the gateway's first pod creation — no restart needed.
+The Stoker webhook injects the agent sidecar when a pod is created. By installing the operator and CRs first, the webhook is ready to inject on the gateway's first pod creation, so no restart is needed.
 :::
 
 Wait for the gateway to start:
@@ -158,7 +158,7 @@ Once the gateway pod shows **2/2**, walk through these checks to confirm everyth
 
 ### Confirm sidecar injection
 
-Verify the pod has both containers — the gateway and the injected `stoker-agent` sidecar:
+Verify the pod has both containers: the gateway and the injected `stoker-agent` sidecar.
 
 ```bash
 kubectl get pod -n quickstart -o 'custom-columns=NAME:.metadata.name,SIDECARS:.spec.initContainers[*].name,STATUS:.status.phase'
@@ -208,9 +208,9 @@ kubectl logs -n quickstart -l app.kubernetes.io/name=ignition -c stoker-agent --
 
 Look for:
 
-- `clone complete` — the repo was cloned successfully
-- `initial sync complete, startup probe now passing` — files were delivered before the gateway started
-- `new commit detected` — the agent saw a commit change and will sync
+- `clone complete`: the repo was cloned successfully
+- `initial sync complete, startup probe now passing`: files were delivered before the gateway started
+- `new commit detected`: the agent saw a commit change and will sync
 
 In steady state, agent logs are silent when nothing changes. To see detailed sync activity (file counts, scan results), increase the log verbosity with `--zap-log-level=1` or set `LOG_LEVEL=debug`.
 
@@ -264,8 +264,8 @@ kind delete cluster --name stoker-quickstart
 
 ## Next steps
 
-- **[Multi-Gateway Profiles](./guides/multi-gateway.md)** — use `{{.GatewayName}}` or `{{.Labels.key}}` to serve multiple gateways from one profile
-- **[Webhook Sync](./guides/webhook-sync.md)** — trigger syncs on git push events instead of polling
-- **[Git Authentication](./guides/git-authentication.md)** — set up token, SSH, or GitHub App auth for private repositories
-- **[GatewaySync CR Reference](./reference/gatewaysync-cr.md)** — full spec reference including git auth, polling, sync profiles, and agent configuration
-- **[Helm Values](./reference/helm-values.md)** — all configurable values for the operator chart
+- **[Multi-Gateway Profiles](./guides/multi-gateway.md):** use `{{.GatewayName}}` or `{{.Labels.key}}` to serve multiple gateways from one profile
+- **[Webhook Sync](./guides/webhook-sync.md):** trigger syncs on git push events instead of polling
+- **[Git Authentication](./guides/git-authentication.md):** set up token, SSH, or GitHub App auth for private repositories
+- **[GatewaySync CR Reference](./reference/gatewaysync-cr.md):** full spec reference including git auth, polling, sync profiles, and agent configuration
+- **[Helm Values](./reference/helm-values.md):** all configurable values for the operator chart

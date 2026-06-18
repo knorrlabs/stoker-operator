@@ -14,24 +14,24 @@ description: Common issues, debug commands, and FAQ.
 
 **Checklist:**
 
-1. **Namespace label** — if `webhook.namespaceSelector.requireLabel=true` is set, ensure the namespace has `stoker.io/injection=enabled`:
+1. **Namespace label:** if `webhook.namespaceSelector.requireLabel=true` is set, ensure the namespace has `stoker.io/injection=enabled`:
    ```bash
    kubectl get namespace <ns> --show-labels
    ```
-   With the default configuration, no namespace label is needed — injection works in all namespaces except `kube-system` and `kube-node-lease`.
-2. **Pod annotation** — ensure the pod has `stoker.io/inject: "true"` (must be a string, not a boolean):
+   With the default configuration, no namespace label is needed; injection works in all namespaces except `kube-system` and `kube-node-lease`.
+2. **Pod annotation:** ensure the pod has `stoker.io/inject: "true"` (must be a string, not a boolean):
    ```bash
    kubectl get pod <pod> -n <ns> -o jsonpath='{.metadata.annotations}'
    ```
-3. **Webhook running** — check the controller pod logs for webhook server startup:
+3. **Webhook running:** check the controller pod logs for webhook server startup:
    ```bash
    kubectl logs -n stoker-system deploy/stoker-stoker-operator-controller-manager | grep webhook
    ```
-4. **cert-manager certificates** — the webhook requires a valid TLS certificate:
+4. **cert-manager certificates:** the webhook requires a valid TLS certificate:
    ```bash
    kubectl get certificate -n stoker-system
    ```
-5. **Timing** — the webhook only injects on pod creation. If the pod was created before the operator was installed, delete the pod and let the StatefulSet recreate it.
+5. **Timing:** the webhook only injects on pod creation. If the pod was created before the operator was installed, delete the pod and let the StatefulSet recreate it.
 
 ### Status stuck at Pending
 
@@ -39,11 +39,11 @@ description: Common issues, debug commands, and FAQ.
 
 **Checklist:**
 
-1. **Agent logs** — check for errors in the agent sidecar:
+1. **Agent logs:** check for errors in the agent sidecar:
    ```bash
    kubectl logs <pod> -n <ns> -c stoker-agent --tail=50
    ```
-2. **RBAC** — verify the agent RoleBinding exists (created automatically when `rbac.autoBindAgent.enabled=true`):
+2. **RBAC:** verify the agent RoleBinding exists (created automatically when `rbac.autoBindAgent.enabled=true`):
    ```bash
    kubectl get rolebinding -n <ns> | grep stoker-agent
    ```
@@ -52,11 +52,11 @@ description: Common issues, debug commands, and FAQ.
    kubectl create rolebinding stoker-agent -n <ns> \
      --clusterrole=stoker-agent --serviceaccount=<ns>:<service-account>
    ```
-3. **Secret mounts** — if using private repos, verify the git credentials secret exists:
+3. **Secret mounts:** if using private repos, verify the git credentials secret exists:
    ```bash
    kubectl get secret -n <ns>
    ```
-4. **API key** — verify the Ignition API key secret exists and is referenced correctly:
+4. **API key:** verify the Ignition API key secret exists and is referenced correctly:
    ```bash
    kubectl get secret gw-api-key -n <ns>
    ```
@@ -67,12 +67,12 @@ description: Common issues, debug commands, and FAQ.
 
 **Causes:**
 
-- **Invalid repo URL** — check for typos in `spec.git.repo`
-- **Auth failure** — the token/SSH key/GitHub App credentials are wrong or expired
-- **Network access** — the controller pod can't reach the git host (check network policies)
-- **Ref doesn't exist** — the specified branch or tag doesn't exist in the remote
-- **SSH host key mismatch** — if `knownHosts` is configured and the git server's key doesn't match, the connection is rejected. Re-scan the host: `ssh-keyscan <host> > known_hosts` and update the Secret.
-- **GitHub App exchange failed** — if the condition reason is `GitHubAppExchangeFailed`, check that the App ID, Installation ID, and PEM key are correct. Verify the app has **Contents: Read** permission and is installed on the target repository. Clock skew >60s between the controller and GitHub can also cause JWT validation failures.
+- **Invalid repo URL:** check for typos in `spec.git.repo`
+- **Auth failure:** the token/SSH key/GitHub App credentials are wrong or expired
+- **Network access:** the controller pod can't reach the git host (check network policies)
+- **Ref doesn't exist:** the specified branch or tag doesn't exist in the remote
+- **SSH host key mismatch:** if `knownHosts` is configured and the git server's key doesn't match, the connection is rejected. Re-scan the host: `ssh-keyscan <host> > known_hosts` and update the Secret.
+- **GitHub App exchange failed:** if the condition reason is `GitHubAppExchangeFailed`, check that the App ID, Installation ID, and PEM key are correct. Verify the app has **Contents: Read** permission and is installed on the target repository. Clock skew >60s between the controller and GitHub can also cause JWT validation failures.
 
 The condition message includes the retry interval (e.g., `retry in 30s`). Consecutive failures back off exponentially (30s → 60s → 120s → 240s → 5min cap). Fixing the root cause or triggering a webhook resets the backoff immediately.
 
@@ -86,7 +86,7 @@ kubectl logs -n stoker-system deploy/stoker-stoker-operator-controller-manager |
 
 **Symptoms:** `kubectl describe gs <name>` shows `SSHHostKeyVerification=False` with reason `HostKeyVerificationDisabled`.
 
-**Cause:** SSH key auth is configured without `knownHosts`, so connections use `InsecureIgnoreHostKey`. This is a security warning — connections are vulnerable to MITM attacks.
+**Cause:** SSH key auth is configured without `knownHosts`, so connections use `InsecureIgnoreHostKey`. Connections are vulnerable to MITM attacks.
 
 **Fix:** Add a `knownHosts` Secret. See the [SSH host key verification](../guides/git-authentication.md#ssh-host-key-verification) guide.
 
@@ -96,9 +96,9 @@ kubectl logs -n stoker-system deploy/stoker-stoker-operator-controller-manager |
 
 **Causes:**
 
-- **Scan API failure** — check gateway port and TLS settings match `spec.gateway.port` and `spec.gateway.tls`
-- **API key format** — the Ignition API key must be in `name:secret` format (e.g., `ignition-api-key:CYCSdRg...`), not just the secret portion
-- **Gateway not ready** — the Ignition gateway may still be starting up
+- **Scan API failure:** check gateway port and TLS settings match `spec.gateway.port` and `spec.gateway.tls`
+- **API key format:** the Ignition API key must be in `name:secret` format (e.g., `ignition-api-key:CYCSdRg...`), not just the secret portion
+- **Gateway not ready:** the Ignition gateway may still be starting up
 
 ```bash
 kubectl logs <pod> -n <ns> -c stoker-agent | grep -i "scan\|error"
@@ -111,8 +111,8 @@ kubectl logs <pod> -n <ns> -c stoker-agent | grep -i "scan\|error"
 | Code | Likely cause |
 |------|-------------|
 | 401 | API key missing, wrong format, or not loaded by gateway |
-| 404 | Wrong gateway port — the API is on a different port than configured |
-| 500 | Gateway internal error — check the Ignition gateway logs |
+| 404 | Wrong gateway port. The API is on a different port than configured. |
+| 500 | Gateway internal error. Check the Ignition gateway logs. |
 | Connection refused | Wrong port, TLS mismatch, or gateway not yet started |
 
 :::tip API key format
@@ -131,7 +131,7 @@ templating config/resources/core/image.png: template=true on binary file is not 
 
 **Cause:** A mapping with `template: true` matched a binary file (contains null bytes).
 
-**Fix:** Split the mapping into two — one for text files with `template: true`, another for binary files without it. Or exclude binary files with `excludePatterns`:
+**Fix:** Split the mapping into two: one for text files with `template: true`, another for binary files without it. Or exclude binary files with `excludePatterns`:
 
 ```yaml
 mappings:
@@ -186,7 +186,7 @@ templating config/some-file.json: resolving template in .../some-file.json: temp
    kubectl logs -n stoker-system deploy/stoker-stoker-operator-controller-manager | grep "GitHub App\|token"
    ```
 3. Verify the GitHub App has **Contents: Read** permission on the repository and is installed on the target repo.
-4. Check for clock skew — the JWT used for token exchange is valid for 60 seconds. A controller with clock skew >60s relative to GitHub will get 401 errors.
+4. Check for clock skew: the JWT used for token exchange is valid for 60 seconds. A controller with clock skew >60s relative to GitHub will get 401 errors.
 
 ### JSON patch errors
 
@@ -245,13 +245,13 @@ mapping[0]: type mismatch: spec says "dir" but /repo/config/versions/.versions.j
 
 **Checklist:**
 
-1. **Previous logs** — check the last crash output:
+1. **Previous logs:** check the last crash output:
    ```bash
    kubectl logs <pod> -n <ns> -c stoker-agent --previous
    ```
-2. **Resource limits** — the default agent has no resource limits. If limits are set too low, OOM kills can occur.
-3. **Volume mounts** — the agent requires `/ignition-data/` to be mounted from the gateway's data volume.
-4. **ConfigMap missing** — if the GatewaySync CR was deleted while the pod is running, the metadata ConfigMap no longer exists.
+2. **Resource limits:** the default agent has no resource limits. If limits are set too low, OOM kills can occur.
+3. **Volume mounts:** the agent requires `/ignition-data/` to be mounted from the gateway's data volume.
+4. **ConfigMap missing:** if the GatewaySync CR was deleted while the pod is running, the metadata ConfigMap no longer exists.
 
 ## Debug commands
 
