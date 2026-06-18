@@ -74,6 +74,14 @@ flowchart LR
 6. **Scan:** calls the Ignition REST API (`/scan/projects` and `/scan/config`) so the gateway reloads without restart
 7. **Report:** writes sync results (commit, file counts, errors) to the status ConfigMap
 
+**Commit detection** is dual-track: the metadata ConfigMap is polled every 3 seconds independent of `syncPeriod`, so new commits are detected within 3 seconds of the controller writing them. `syncPeriod` drives a separate fallback timer that fires even when the ConfigMap has not changed.
+
+**Initial sync:** the first cycle skips the scan step and attempts a health check instead (expected to fail; the gateway has not started yet). The agent writes status `Pending`. Status advances to `Synced` after the post-commission re-sync completes.
+
+#### Post-commission re-sync
+
+When deployed as a native sidecar, the agent syncs files before the gateway container starts. Ignition's commissioning process (first boot) overwrites config resources, including `security-properties`, with factory defaults. To restore git-sourced config after commissioning completes, the agent polls the gateway TCP port every 5 seconds using a raw port check rather than the authenticated health endpoint (commissioning may overwrite the security settings that grant API token access). Once the port responds, the agent runs a second full sync+scan cycle. This restores any config that commissioning overwrote and triggers a gateway reload without restart. The `Pending` status from the initial sync clears at this point.
+
 #### Three-layer architecture
 
 The agent is split into three layers to keep concerns separate:
@@ -108,6 +116,8 @@ POST /webhook/{namespace}/{crName}
 It auto-detects the payload format (GitHub, ArgoCD, Kargo, or generic `{"ref": "..."}`) and annotates the GatewaySync CR with the requested ref. The controller's reconciliation predicate picks up the annotation change and triggers an immediate sync.
 
 HMAC signature validation via `X-Hub-Signature-256` is supported when configured.
+
+The receiver runs on every controller replica (`NeedLeaderElection()` returns `false`), so the Service load-balances across all pods and no webhook is dropped if it reaches a non-leader pod.
 
 ## Next steps
 
