@@ -18,6 +18,7 @@ const config: Config = {
   },
 
   onBrokenLinks: "throw",
+  trailingSlash: false,
 
   markdown: {
     mermaid: true,
@@ -33,7 +34,7 @@ const config: Config = {
     "@docusaurus/theme-mermaid",
     [
       require.resolve("@easyops-cn/docusaurus-search-local"),
-      { hashed: true, indexBlog: false },
+      { hashed: true, indexBlog: false, docsRouteBasePath: "/" },
     ],
   ],
 
