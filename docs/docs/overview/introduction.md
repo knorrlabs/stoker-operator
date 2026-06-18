@@ -6,7 +6,7 @@ description: What is Stoker and why it exists.
 
 # Introduction
 
-Stoker is a Kubernetes operator that continuously syncs Ignition SCADA gateway configuration from Git. Declare your desired gateway state — projects, themes, config files — in a Git repository, and Stoker keeps every gateway in sync automatically.
+Stoker is a Kubernetes operator that continuously syncs Ignition SCADA gateway configuration from Git. Declare your desired gateway state (projects, themes, config files) in a Git repository, and Stoker keeps every gateway in sync automatically.
 
 ## The problem
 
@@ -18,13 +18,13 @@ Stoker brings GitOps to Ignition. You commit configuration to a Git repository a
 
 ## Key features
 
-- **Git-driven sync** — branch, tag, or commit SHA as the source of truth
-- **Multi-gateway profiles** — one CR can serve many gateways using template variables (`{{.GatewayName}}`, `{{.Labels.site}}`)
-- **Automatic sidecar injection** — a mutating webhook injects the sync agent with zero manual container config
-- **Webhook-driven sync** — trigger instant syncs from GitHub releases, ArgoCD, Kargo, or any system that can POST JSON
-- **Dry-run mode** — preview file changes in a status ConfigMap before touching the live directory
-- **Designer session awareness** — proceed, wait, or abort when designers are connected
-- **No shared storage** — controller and agent communicate entirely via ConfigMaps
+- **Git-driven sync:** branch, tag, or commit SHA as the source of truth
+- **Multi-gateway profiles:** one CR can serve many gateways using template variables (`{{.GatewayName}}`, `{{.Labels.site}}`)
+- **Automatic sidecar injection:** a mutating webhook injects the sync agent with zero manual container config
+- **Webhook-driven sync:** trigger instant syncs from GitHub releases, ArgoCD, Kargo, or any system that can POST JSON
+- **Dry-run mode:** preview file changes in a status ConfigMap before touching the live directory
+- **Designer session awareness:** proceed, wait, or abort when designers are connected
+- **No shared storage:** controller and agent communicate entirely via ConfigMaps
 
 ## How it works
 
@@ -54,5 +54,5 @@ Stoker brings GitOps to Ignition. You commit configuration to a Git repository a
 
 ## Next steps
 
-- [Architecture](./architecture.md) — deep dive into the controller, webhook, and agent
-- [Quickstart](../quickstart.md) — get a gateway syncing from Git in 5 steps
+- [Architecture](./architecture.md): deep dive into the controller, webhook, and agent
+- [Quickstart](../quickstart.md): get a gateway syncing from Git in 5 steps

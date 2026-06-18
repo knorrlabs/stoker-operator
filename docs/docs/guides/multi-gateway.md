@@ -27,7 +27,7 @@ spec:
             type: dir
 ```
 
-A gateway named `ignition-blue` syncs from `services/ignition-blue/`, while `ignition-red` syncs from `services/ignition-red/` — same profile, different files.
+A gateway named `ignition-blue` syncs from `services/ignition-blue/`, while `ignition-red` syncs from `services/ignition-red/`: same profile, different files.
 
 ## Label-based routing
 
@@ -59,7 +59,7 @@ podLabels:
 Now this gateway syncs from `sites/factory-north/`.
 
 :::warning Label key naming
-`key` in `{{.Labels.key}}` must be a **valid identifier** — letters, digits, and underscores only. **Dashes and dots are not supported** and cause a template parse error at sync time.
+`key` in `{{.Labels.key}}` must be a **valid identifier**: letters, digits, and underscores only. **Dashes and dots are not supported** and cause a template parse error at sync time.
 
 | | |
 |---|---|
@@ -90,7 +90,7 @@ spec:
 ```
 
 :::warning Var key naming
-Var keys follow the same identifier constraint as label keys — **letters, digits, and underscores only; no dashes**. The controller rejects CRs with invalid var keys immediately at reconcile time with a `ProfilesValid=False` status condition, so you'll catch errors before they reach sync.
+Var keys follow the same identifier constraint as label keys: **letters, digits, and underscores only; no dashes**. The controller rejects CRs with invalid var keys immediately at reconcile time with a `ProfilesValid=False` status condition, so you'll catch errors before they reach sync.
 
 | | |
 |---|---|
@@ -209,9 +209,9 @@ spec:
 |----------|--------|---------------|
 | `{{.GatewayName}}` | `stoker.io/gateway-name` annotation or `app.kubernetes.io/name` label | `ignition-blue` |
 | `{{.PodName}}` | Kubernetes pod name | `my-gateway-0` |
-| `{{.PodOrdinal}}` | StatefulSet replica index — from `apps.kubernetes.io/pod-index` label (K8s 1.27+), falls back to parsing pod name | `0`, `1`, `2` |
-| `{{.Labels.key}}` | Any pod label — key must be a valid identifier (no dashes) | `factory-north` |
-| `{{.Vars.key}}` | Profile or defaults `vars` map — key must be a valid identifier (no dashes) | `us-east` |
+| `{{.PodOrdinal}}` | StatefulSet replica index: from `apps.kubernetes.io/pod-index` label (K8s 1.27+), falls back to parsing pod name | `0`, `1`, `2` |
+| `{{.Labels.key}}` | Any pod label; key must be a valid identifier (no dashes) | `factory-north` |
+| `{{.Vars.key}}` | Profile or defaults `vars` map; key must be a valid identifier (no dashes) | `us-east` |
 | `{{.CRName}}` | GatewaySync CR name | `my-sync` |
 | `{{.Namespace}}` | Pod namespace | `production` |
 | `{{.Ref}}` | Resolved git ref | `main` |
@@ -221,5 +221,5 @@ See the [CRD reference](../reference/gatewaysync-cr.md#template-variables) for t
 
 ## Next steps
 
-- [GatewaySync CR Reference](../reference/gatewaysync-cr.md#template-variables) — full template variable reference
-- [Webhook Sync](./webhook-sync.md) — trigger instant syncs on push events
+- [GatewaySync CR Reference](../reference/gatewaysync-cr.md#template-variables): full template variable reference
+- [Webhook Sync](./webhook-sync.md): trigger instant syncs on push events

@@ -9,7 +9,7 @@ import TabItem from '@theme/TabItem';
 
 # Git Authentication
 
-Stoker supports three authentication methods for private Git repositories. Public repositories need no auth configuration — just set `spec.git.repo` and `spec.git.ref`.
+Stoker supports three authentication methods for private Git repositories. Public repositories need no auth configuration; just set `spec.git.repo` and `spec.git.ref`.
 
 <Tabs>
 <TabItem value="token" label="Token" default>
@@ -170,7 +170,7 @@ spec:
   # ... gateway, sync config
 ```
 
-**How it works:** The controller exchanges the PEM private key for a short-lived installation access token (1-hour expiry) via the GitHub API, caches it with a 5-minute pre-expiry refresh, and writes it to a controller-managed Secret (`stoker-github-token-{crName}`). The agent mounts this Secret to authenticate git operations. The PEM key never leaves the controller namespace — agent pods do not mount the PEM secret.
+**How it works:** The controller exchanges the PEM private key for a short-lived installation access token (1-hour expiry) via the GitHub API, caches it with a 5-minute pre-expiry refresh, and writes it to a controller-managed Secret (`stoker-github-token-{crName}`). The agent mounts this Secret to authenticate git operations. The PEM key never leaves the controller namespace; agent pods do not mount the PEM secret.
 
 **When to use:** Organizations managing many repos, where individual tokens are impractical or against policy. App tokens auto-rotate and provide audit trails.
 
@@ -191,5 +191,5 @@ Set `apiBaseURL` to your GitHub Enterprise API endpoint (e.g., `https://github.e
 
 ## Next steps
 
-- [GatewaySync CR Reference](../reference/gatewaysync-cr.md#specgitauth) — full auth field reference
-- [Multi-Gateway Profiles](./multi-gateway.md) — route different gateways to different repo paths
+- [GatewaySync CR Reference](../reference/gatewaysync-cr.md#specgitauth): full auth field reference
+- [Multi-Gateway Profiles](./multi-gateway.md): route different gateways to different repo paths

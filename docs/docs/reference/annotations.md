@@ -36,7 +36,7 @@ Use `--set-string` (not `--set`) when passing annotation values through Helm to 
 
 | Label | Value | Description |
 |-------|-------|-------------|
-| `stoker.io/injection` | `enabled` | Optional — only needed when `webhook.namespaceSelector.requireLabel=true`. Marks the namespace for sidecar injection. |
+| `stoker.io/injection` | `enabled` | Optional: only needed when `webhook.namespaceSelector.requireLabel=true`. Marks the namespace for sidecar injection. |
 
 ```bash
 kubectl label namespace my-namespace stoker.io/injection=enabled
@@ -50,7 +50,7 @@ These annotations are set automatically on GatewaySync CRs by the webhook receiv
 
 | Annotation | Value | Description |
 |------------|-------|-------------|
-| `stoker.io/requested-ref` | string | Git ref requested by the last webhook payload. Acts as a fast-path override of `spec.git.ref` — the controller uses this value immediately without waiting for ArgoCD to sync. Automatically cleared once `spec.git.ref` catches up (with `v`-prefix normalization). |
+| `stoker.io/requested-ref` | string | Git ref requested by the last webhook payload. Acts as a fast-path override of `spec.git.ref`: the controller uses this value immediately without waiting for ArgoCD to sync. Automatically cleared once `spec.git.ref` catches up (with `v`-prefix normalization). |
 | `stoker.io/requested-at` | RFC 3339 timestamp | When the webhook request was received |
 | `stoker.io/requested-by` | `"github"`, `"argocd"`, `"kargo"`, or `"generic"` | Source format detected from the payload |
 
@@ -60,7 +60,7 @@ These annotations trigger an immediate reconciliation via the controller's predi
 
 | Annotation | Value | Description |
 |------------|-------|-------------|
-| `stoker.io/injected` | `"true"` | Set by the mutating webhook after successful sidecar injection. Used for tracking — do not set manually. |
+| `stoker.io/injected` | `"true"` | Set by the mutating webhook after successful sidecar injection. Used for tracking; do not set manually. |
 
 ## Annotations and labels on owned resources
 

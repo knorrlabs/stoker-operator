@@ -88,10 +88,10 @@ Two pre-built dashboards are shipped in the Helm chart under `dashboards/`:
 
 | Dashboard | File | Description |
 |-----------|------|-------------|
-| **Fleet Overview** | `stoker-fleet.json` | High-level health across all GatewaySync CRs — summary stats, per-CR status cards with drill-down links, CR info table, controller performance, agent averages, webhook rates |
-| **GatewaySync Detail** | `stoker-detail.json` | Deep dive into a single CR — conditions, per-gateway status table, controller and agent performance, file breakdown, designer sessions |
+| **Fleet Overview** | `stoker-fleet.json` | High-level health across all GatewaySync CRs: summary stats, per-CR status cards with drill-down links, CR info table, controller performance, agent averages, webhook rates |
+| **GatewaySync Detail** | `stoker-detail.json` | Deep dive into a single CR: conditions, per-gateway status table, controller and agent performance, file breakdown, designer sessions |
 
-The fleet dashboard links to the detail view — click any CR status card to drill down with the namespace and CR pre-populated.
+The fleet dashboard links to the detail view; click any CR status card to drill down with the namespace and CR pre-populated.
 
 ### Auto-provisioning via sidecar
 
@@ -119,15 +119,15 @@ For Grafana instances without the sidecar (standalone, Docker, Grafana Cloud), c
 ### Dashboard variables
 
 The **fleet dashboard** has two variables:
-- `datasource` — Prometheus data source
-- `namespace` — multi-select filter for CR namespaces (defaults to All)
+- `datasource`: Prometheus data source
+- `namespace`: multi-select filter for CR namespaces (defaults to All)
 
 The **detail dashboard** has five variables:
-- `datasource` — Prometheus data source
-- `namespace` — single CR namespace (from controller metrics)
-- `cr` — single GatewaySync CR name
-- `agent_namespace` — multi-select filter for agent pod namespaces (separate from CR namespace since agents run in gateway namespaces)
-- `profile` — multi-select filter for sync profiles
+- `datasource`: Prometheus data source
+- `namespace`: single CR namespace (from controller metrics)
+- `cr`: single GatewaySync CR name
+- `agent_namespace`: multi-select filter for agent pod namespaces (separate from CR namespace since agents run in gateway namespaces)
+- `profile`: multi-select filter for sync profiles
 
 :::tip
 Controller metrics use `namespace` = the CR's namespace. Agent metrics use `namespace` = the gateway pod's namespace. These are typically different namespaces. The dashboards handle this with separate template variables.

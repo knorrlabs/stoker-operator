@@ -65,7 +65,7 @@ spec:
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
 | `repo` | string | Yes | — | Git repository URL (SSH or HTTPS) |
-| `ref` | string | Yes | — | Git reference to sync — branch, tag, or commit SHA |
+| `ref` | string | Yes | — | Git reference to sync: branch, tag, or commit SHA |
 | `auth` | object | No | — | Git authentication configuration |
 
 ### `spec.git.auth`
@@ -131,7 +131,7 @@ auth:
 | `githubApp.privateKeySecretRef.key` | string | Yes | — | Key within the Secret |
 | `githubApp.apiBaseURL` | string | No | `https://api.github.com` | GitHub API base URL (set for GitHub Enterprise Server) |
 
-The controller exchanges the PEM private key for a short-lived installation access token (1-hour expiry), caches it with a 5-minute pre-expiry refresh, and writes it to a controller-managed Secret (`stoker-github-token-{crName}`). The agent mounts this Secret at `/etc/stoker/git-token/token`. The PEM key never leaves the controller namespace — agent pods do not mount the PEM secret.
+The controller exchanges the PEM private key for a short-lived installation access token (1-hour expiry), caches it with a 5-minute pre-expiry refresh, and writes it to a controller-managed Secret (`stoker-github-token-{crName}`). The agent mounts this Secret at `/etc/stoker/git-token/token`. The PEM key never leaves the controller namespace; agent pods do not mount the PEM secret.
 
 ## `spec.polling`
 
@@ -164,10 +164,10 @@ Baseline settings inherited by all profiles. Individual profiles can override th
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
 | `excludePatterns` | []string | No | `["**/.git/", "**/.gitkeep", "**/.resources/**"]` | Glob patterns for files to exclude from sync |
-| `vars` | map[string]string | No | — | Default template variables inherited by all profiles. Profile `vars` override these per-key. Keys must be valid identifiers (letters, digits, underscores — no dashes). |
+| `vars` | map[string]string | No | — | Default template variables inherited by all profiles. Profile `vars` override these per-key. Keys must be valid identifiers (letters, digits, underscores; no dashes). |
 | `syncPeriod` | int32 | No | `30` | Agent-side polling interval in seconds (min: 5, max: 3600) |
 | `designerSessionPolicy` | string | No | `"proceed"` | Behavior when Designer sessions are active: `proceed`, `wait`, or `fail` |
-| `dryRun` | bool | No | `false` | Sync to staging only — write diff to status ConfigMap without modifying `/ignition-data/` |
+| `dryRun` | bool | No | `false` | Sync to staging only; writes the diff to the status ConfigMap without modifying `/ignition-data/` |
 | `paused` | bool | No | `false` | Halt sync for all profiles |
 
 The `**/.resources/**` pattern is always enforced by the agent even if omitted from `excludePatterns`.
@@ -199,7 +199,7 @@ Each profile supports the following fields:
 |-------|------|----------|---------|-------------|
 | `mappings` | []object | Yes | — | Ordered list of source-to-destination file mappings |
 | `excludePatterns` | []string | No | — | Additional glob patterns merged with `spec.sync.defaults.excludePatterns` |
-| `vars` | map[string]string | No | — | Custom template variables available as `{{.Vars.key}}`. Keys must be valid identifiers (letters, digits, underscores — no dashes). |
+| `vars` | map[string]string | No | — | Custom template variables available as `{{.Vars.key}}`. Keys must be valid identifiers (letters, digits, underscores; no dashes). |
 | `syncPeriod` | int32 | No | inherited | Overrides `spec.sync.defaults.syncPeriod` |
 | `dryRun` | bool | No | inherited | Overrides `spec.sync.defaults.dryRun` |
 | `designerSessionPolicy` | string | No | inherited | Overrides `spec.sync.defaults.designerSessionPolicy` |
@@ -213,13 +213,13 @@ An ordered list of source-to-destination file mappings. Applied top to bottom; l
 |-------|------|----------|---------|-------------|
 | `source` | string | Yes | — | Repo-relative path to copy from |
 | `destination` | string | Yes | — | Path relative to the Ignition data directory (`/ignition-data/`) |
-| `type` | string | No | inferred | Entry type — `"dir"` or `"file"`. When omitted the agent infers the type from the filesystem at sync time. |
+| `type` | string | No | inferred | Entry type: `"dir"` or `"file"`. When omitted the agent infers the type from the filesystem at sync time. |
 | `required` | bool | No | `false` | Fail sync if the source path doesn't exist |
 | `template` | bool | No | `false` | Resolve Go template variables inside file **contents** at sync time. Binary files (null bytes) are rejected. See [Content Templating](../guides/content-templating.md). |
 | `patches` | []object | No | — | Targeted JSON field updates applied at sync time. See [JSON Patches](../guides/json-patches.md). |
 
 :::note
-`type` is inferred from `os.Stat` on the source path — no default value is required in the CR. If you set it explicitly, it acts as a validation hint: the agent errors if the actual filesystem type doesn't match. A source that doesn't exist (when `required: false`) defaults to `"dir"` and is silently skipped.
+`type` is inferred from `os.Stat` on the source path; no default value is required in the CR. If you set it explicitly, it acts as a validation hint: the agent errors if the actual filesystem type doesn't match. A source that doesn't exist (when `required: false`) defaults to `"dir"` and is silently skipped.
 :::
 
 #### `patches`
@@ -257,7 +257,7 @@ Both `source` and `destination` support Go template variables:
 | `{{.PodName}}` | Kubernetes pod name | `system-{{.PodName}}` |
 | `{{.PodOrdinal}}` | StatefulSet replica index (`0`, `1`, `2`, ...). Always `0` for non-StatefulSet pods. Sourced from the `apps.kubernetes.io/pod-index` label (K8s 1.27+) with pod-name fallback. | `"{{.Vars.projectName}}-{{.PodOrdinal}}"` |
 | `{{.CRName}}` | Name of the GatewaySync CR that owns this sync | `config/{{.CRName}}/resources` |
-| `{{.Labels.key}}` | Any label on the gateway pod — `key` must be a simple identifier (letters, digits, underscores). See note below. | `sites/{{.Labels.site}}/projects` |
+| `{{.Labels.key}}` | Any label on the gateway pod. `key` must be a simple identifier (letters, digits, underscores). See note below. | `sites/{{.Labels.site}}/projects` |
 | `{{.Vars.key}}` | Custom variable from profile or defaults `vars` (profile overrides default per-key) | `site{{.Vars.siteNumber}}/scripts` |
 | `{{.Namespace}}` | Pod namespace | `config/{{.Namespace}}/overlay` |
 | `{{.Ref}}` | Resolved git ref | — |
@@ -287,7 +287,7 @@ sync:
                 # → my-gateway-0, my-gateway-1, my-gateway-2, ...
 ```
 
-The `-` between `}}` and `{{` is literal text outside the template delimiters — this is valid syntax even though dashes cannot appear *inside* `{{ }}`.
+The `-` between `}}` and `{{` is literal text outside the template delimiters; this is valid syntax even though dashes cannot appear *inside* `{{ }}`.
 
 ##### Example: label-based routing
 
@@ -307,14 +307,14 @@ sync:
           type: dir
 ```
 
-A pod with label `site: ignition-blue` syncs from `services/ignition-blue/`, while `site: ignition-red` syncs from `services/ignition-red/` — same profile, different files.
+A pod with label `site: ignition-blue` syncs from `services/ignition-blue/`, while `site: ignition-red` syncs from `services/ignition-red/`: same profile, different files.
 
 :::note
-**Label and var key naming constraint:** Go's template engine requires map keys to be valid identifiers when accessed with dot notation. Keys must use only letters, digits, and underscores — **dashes, dots, and slashes are not supported**.
+**Label and var key naming constraint:** Go's template engine requires map keys to be valid identifiers when accessed with dot notation. Keys must use only letters, digits, and underscores (dashes, dots, and slashes are not supported).
 
-- `{{.Labels.site}}` ✅ — simple identifier
-- `{{.Labels.my-label}}` ❌ — parse error (`bad character '-'`)
-- `{{.Labels.app.kubernetes.io}}` ❌ — silently looks up key `"app"`, not `"app.kubernetes.io"`
+- `{{.Labels.site}}` ✅ (simple identifier)
+- `{{.Labels.my-label}}` ❌ (parse error: `bad character '-'`)
+- `{{.Labels.app.kubernetes.io}}` ❌ (silently looks up key `"app"`, not `"app.kubernetes.io"`)
 
 For K8s system labels with dots or slashes (e.g., `apps.kubernetes.io/pod-index`), use `{{.PodOrdinal}}` or a `vars` entry instead of `{{.Labels.*}}`.
 
@@ -387,9 +387,9 @@ my-gateway   main   1/1 synced   True    All gateways synced 5m
 
 Gateways progress through these sync states:
 
-1. **Pending** — initial sync completes (files written) but gateway hasn't been validated yet
-2. **Synced** — the Ignition scan API confirmed both `/scan/projects` and `/scan/config` returned HTTP 200
-3. **Error** — the scan API returned a non-200 status or was unreachable
+1. **Pending:** initial sync completes (files written) but gateway hasn't been validated yet
+2. **Synced:** the Ignition scan API confirmed both `/scan/projects` and `/scan/config` returned HTTP 200
+3. **Error:** the scan API returned a non-200 status or was unreachable
 
 The `AllGatewaysSynced` condition is `True` only when all discovered gateways report `Synced`.
 
@@ -401,5 +401,5 @@ The `AllGatewaysSynced` condition is `True` only when all discovered gateways re
 | `ProfilesValid` | All embedded profiles pass validation (no path traversal, no absolute paths) |
 | `AllGatewaysSynced` | All discovered gateway pods report `Synced` status |
 | `SidecarInjected` | All discovered gateway pods have the stoker-agent sidecar container |
-| `SSHHostKeyVerification` | SSH host key verification status — `True` when `knownHosts` is configured, `False` (warning) when SSH auth is used without it. Only present on CRs using SSH key authentication. |
+| `SSHHostKeyVerification` | SSH host key verification status: `True` when `knownHosts` is configured, `False` (warning) when SSH auth is used without it. Only present on CRs using SSH key authentication. |
 | `Ready` | `RefResolved`, `ProfilesValid`, and `AllGatewaysSynced` are all `True` |

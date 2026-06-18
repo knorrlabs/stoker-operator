@@ -38,7 +38,7 @@ You should see a `controller-manager` pod in `Running` state.
 
 ## Enable sidecar injection
 
-Sidecar injection is enabled by default in all namespaces (except `kube-system` and `kube-node-lease`). Any pod with annotation `stoker.io/inject: "true"` will receive the agent sidecar — no namespace label is needed.
+Sidecar injection is enabled by default in all namespaces (except `kube-system` and `kube-node-lease`). Any pod with annotation `stoker.io/inject: "true"` will receive the agent sidecar; no namespace label is needed.
 
 For regulated environments that require explicit namespace opt-in (e.g., IEC 62443 zone boundaries), enable the namespace label requirement:
 
