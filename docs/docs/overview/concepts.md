@@ -1,16 +1,14 @@
 ---
 sidebar_position: 3
 title: Concepts
-description: Key terms from Kubernetes and Ignition explained for both audiences.
+description: Key Kubernetes and Stoker terms used throughout the docs.
 ---
 
 # Concepts
 
-Stoker is a Kubernetes operator for Ignition SCADA gateways. This page explains key Kubernetes and Stoker-specific terms so you can follow the docs even if you're new to the platform.
+Stoker is a Kubernetes operator for Ignition SCADA gateways. This page defines key Kubernetes and Stoker-specific terms used throughout the docs.
 
 ## Kubernetes concepts
-
-If you're an Ignition integrator who hasn't worked with Kubernetes before, these are the terms you'll encounter throughout the docs.
 
 | Term | What it means |
 |------|--------------|
@@ -27,7 +25,7 @@ If you're an Ignition integrator who hasn't worked with Kubernetes before, these
 | **Helm** | A package manager for Kubernetes. Stoker is installed via a Helm chart that templates all the Kubernetes resources. |
 | **MutatingWebhook** | A Kubernetes feature that intercepts object creation and modifies it. Stoker's webhook automatically injects the agent sidecar into gateway pods; no manual sidecar configuration needed. |
 | **RBAC (Role-Based Access Control)** | Kubernetes permission system. The agent sidecar needs permissions to read ConfigMaps in its namespace. |
-| **kubectl** | The command-line tool for interacting with a Kubernetes cluster. Equivalent to using the Ignition Gateway Webpage, but via terminal commands. |
+| **kubectl** | The command-line tool for interacting with a Kubernetes cluster. Used throughout this guide to apply resources, inspect status, and view logs. |
 
 ## Stoker-specific terms
 

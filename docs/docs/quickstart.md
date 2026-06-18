@@ -140,9 +140,7 @@ The key annotations:
 | `stoker.io/cr-name` | `"quickstart"` | Links to the GatewaySync CR |
 | `stoker.io/profile` | `"standard"` | Selects the sync profile from `spec.sync.profiles` |
 
-:::tip Why install the gateway last?
-The Stoker webhook injects the agent sidecar when a pod is created. By installing the operator and CRs first, the webhook is ready to inject on the gateway's first pod creation, so no restart is needed.
-:::
+The webhook injects on pod creation, so the operator and CRs must be running before the gateway pod starts.
 
 Wait for the gateway to start:
 
