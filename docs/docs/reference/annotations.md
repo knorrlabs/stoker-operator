@@ -54,7 +54,15 @@ These annotations are set automatically on GatewaySync CRs by the webhook receiv
 | `stoker.io/requested-at` | RFC 3339 timestamp | When the webhook request was received |
 | `stoker.io/requested-by` | `"github"`, `"argocd"`, `"kargo"`, or `"generic"` | Source format detected from the payload |
 
-These annotations trigger an immediate reconciliation via the controller's predicate filter. The `requested-ref` annotation is self-cleaning: once `spec.git.ref` is updated (typically by ArgoCD syncing the values change), the controller removes the annotation so it doesn't permanently override the spec.
+These annotations trigger an immediate reconciliation via the controller's predicate filter. The `requested-ref` annotation is self-cleaning: once `spec.git.ref` is updated (typically by ArgoCD syncing the values change), the controller removes the annotation so it doesn't permanently override the spec. Leaving it in place would pin the controller to a stale ref if a future webhook never fires. The comparison strips a leading `v` from both sides so a git tag like `v2.2.3` matches a `spec.git.ref` value of `2.2.3`.
+
+## Pod labels (set by webhook)
+
+These labels are added to gateway pods by the mutating webhook at injection time. They are not annotations and should not be set manually.
+
+| Label | Value | Description |
+|-------|-------|-------------|
+| `stoker.io/agent` | `"true"` | Added to every pod that receives a stoker-agent sidecar. The PodMonitor uses this label as its pod selector for metrics scraping. Labels are indexed by Kubernetes; annotations are not, which is why discovery uses a label rather than an annotation. |
 
 ## Internal annotations (set by webhook)
 
@@ -67,6 +75,7 @@ These annotations trigger an immediate reconciliation via the controller's predi
 | Key | Type | Value | Set on | Description |
 |-----|------|-------|--------|-------------|
 | `stoker.io/cr-name` | Label | CR name | ConfigMaps, Secrets | Identifies the parent GatewaySync CR that owns this resource |
+| `stoker.io/gatewaysync` | Label | CR name | RoleBindings | Set on auto-created agent RoleBindings. Value is the GatewaySync CR name that triggered the binding. |
 | `stoker.io/secret-type` | Annotation | `"github-app-token"` | Secrets | Marks controller-managed Secrets with their purpose |
 
 ## Agent image resolution order

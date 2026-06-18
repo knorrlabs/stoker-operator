@@ -37,6 +37,7 @@ helm install stoker oci://ghcr.io/ia-eknorr/charts/stoker-operator \
 | `podAnnotations` | object | `{}` | Additional annotations to add to the controller pod. |
 | `podLabels` | object | `{}` | Additional labels to add to the controller pod. |
 | `affinity` | object | `{}` | Affinity rules for the controller pod. |
+| `priorityClassName` | string | `""` | PriorityClass for the controller pod (e.g. `system-cluster-critical`). Protects the operator from eviction under node pressure. |
 | `controller.logDevMode` | string | `"false"` | Enable zap Development mode for the controller logger. Development mode disables V-level filtering and uses console-friendly output. Set to `"true"` only for local development. |
 
 ### cert-manager
@@ -60,6 +61,9 @@ helm install stoker oci://ghcr.io/ia-eknorr/charts/stoker-operator \
 | `podMonitor.labels` | object | `{}` | Additional labels for the PodMonitor. |
 | `podMonitor.interval` | string | `""` | Scrape interval for agent metrics. |
 | `podMonitor.scrapeTimeout` | string | `""` | Scrape timeout for agent metrics. |
+| `prometheusRule.enabled` | bool | `false` | Create a PrometheusRule resource with default alerting rules. Requires prometheus-operator CRDs. |
+| `prometheusRule.labels` | object | `{}` | Additional labels for the PrometheusRule (e.g. for Prometheus selector matching). |
+| `prometheusRule.additionalRules` | list | `[]` | Extra alerting rules appended to the default set. |
 | `grafanaDashboard.enabled` | bool | `false` | Create a ConfigMap containing Grafana dashboards (fleet overview + CR detail). Enable when using the k8s-sidecar for auto-discovery. |
 | `grafanaDashboard.namespace` | string | `""` | Namespace for the dashboard ConfigMap. Defaults to the release namespace. Set to your Grafana namespace if the sidecar only watches a specific namespace. |
 | `grafanaDashboard.labels` | object | `{}` | Additional labels for the dashboard ConfigMap. Override if your sidecar uses a label other than `grafana_dashboard: "1"`. |
