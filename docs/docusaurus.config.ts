@@ -42,6 +42,16 @@ const config: Config = {
     "@docusaurus/plugin-ideal-image",
     "docusaurus-plugin-image-zoom",
     [
+      "@docusaurus/plugin-client-redirects",
+      {
+        // Preserve URLs for pages that have moved. Client-side redirects, since
+        // GitHub Pages cannot serve true HTTP 301s.
+        redirects: [
+          { from: "/guides/upgrading", to: "/upgrading" },
+        ],
+      },
+    ],
+    [
       "@signalwire/docusaurus-plugin-llms-txt",
       {
         siteTitle: "Stoker",
