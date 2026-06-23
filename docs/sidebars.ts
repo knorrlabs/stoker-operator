@@ -26,6 +26,7 @@ const sidebars: SidebarsConfig = {
         "guides/webhook-sync",
         "guides/monitoring",
         "guides/multi-site-deployment",
+        "guides/upgrading",
       ],
     },
     {
