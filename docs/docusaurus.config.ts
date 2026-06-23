@@ -7,10 +7,10 @@ const config: Config = {
   tagline: "Git-driven configuration sync for Ignition SCADA gateways",
   favicon: "img/logo.png",
 
-  url: "https://ia-eknorr.github.io",
+  url: "https://knorrlabs.github.io",
   baseUrl: "/stoker-operator/",
 
-  organizationName: "ia-eknorr",
+  organizationName: "knorrlabs",
   projectName: "stoker-operator",
 
   future: {
@@ -77,7 +77,7 @@ const config: Config = {
           routeBasePath: "/",
           sidebarPath: "./sidebars.ts",
           editUrl:
-            "https://github.com/ia-eknorr/stoker-operator/tree/main/docs/",
+            "https://github.com/knorrlabs/stoker-operator/tree/main/docs/",
         },
         blog: false,
         theme: {
@@ -103,7 +103,7 @@ const config: Config = {
           label: "Docs",
         },
         {
-          href: "https://github.com/ia-eknorr/stoker-operator",
+          href: "https://github.com/knorrlabs/stoker-operator",
           label: "GitHub",
           position: "right",
         },
@@ -125,15 +125,15 @@ const config: Config = {
           items: [
             {
               label: "GitHub",
-              href: "https://github.com/ia-eknorr/stoker-operator",
+              href: "https://github.com/knorrlabs/stoker-operator",
             },
             {
               label: "Changelog",
-              href: "https://github.com/ia-eknorr/stoker-operator/blob/main/CHANGELOG.md",
+              href: "https://github.com/knorrlabs/stoker-operator/blob/main/CHANGELOG.md",
             },
             {
               label: "Helm Chart",
-              href: "https://github.com/ia-eknorr/stoker-operator/tree/main/charts/stoker-operator",
+              href: "https://github.com/knorrlabs/stoker-operator/tree/main/charts/stoker-operator",
             },
             {
               label: "Ignition Helm Chart",
