@@ -17,6 +17,8 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} \
 
 # Alpine with git and openssh — no shell session risk with readOnlyRootFilesystem
 FROM alpine:3.24
+# Links the GHCR package to this repo so it inherits repo permissions on push
+LABEL org.opencontainers.image.source="https://github.com/knorrlabs/stoker-operator"
 RUN apk add --no-cache git openssh-client nss_wrapper
 WORKDIR /
 COPY --from=builder /workspace/agent .

@@ -27,6 +27,8 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} \
 # Use distroless as minimal base image to package the binaries
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
 FROM gcr.io/distroless/static:nonroot
+# Links the GHCR package to this repo so it inherits repo permissions on push
+LABEL org.opencontainers.image.source="https://github.com/knorrlabs/stoker-operator"
 WORKDIR /
 COPY --from=builder /workspace/manager .
 COPY --from=builder /workspace/agent .
