@@ -75,5 +75,5 @@ TLS certificates for sidecar injection are managed by cert-manager.
 Ensure cert-manager is installed: https://cert-manager.io/docs/installation/
 {{- end }}
 
-Quickstart guide: https://github.com/ia-eknorr/stoker-operator/blob/main/docs/quickstart.md
-Documentation:    https://github.com/ia-eknorr/stoker-operator
+Quickstart guide: https://github.com/knorrlabs/stoker-operator/blob/main/docs/quickstart.md
+Documentation:    https://github.com/knorrlabs/stoker-operator

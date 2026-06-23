@@ -6,11 +6,15 @@ description: Planned features and milestones for Stoker.
 
 # Roadmap
 
-Current version: **v0.6.1**. [See the changelog](https://github.com/ia-eknorr/stoker-operator/blob/main/CHANGELOG.md) for release history.
+Current version: **v0.6.1**. [See the changelog](https://github.com/knorrlabs/stoker-operator/blob/main/CHANGELOG.md) for release history.
 
 Milestones are release targets in priority order, not promises: scope can shift between minors, and the changelog records what actually shipped.
 
-## v0.7.0 - Validation and conditions
+:::note
+**v0.7.0** ships the GitHub organization migration to `knorrlabs` (new Go module path and image/chart registries; no functional changes). The feature milestones below were renumbered up one minor to make room for it.
+:::
+
+## v0.8.0 - Validation and conditions
 
 Reject invalid configuration at apply time, and surface agent state where `kubectl get gs` can see it.
 
@@ -20,7 +24,7 @@ Reject invalid configuration at apply time, and surface agent state where `kubec
 - `emptyDir` size limit on the agent repo volume (prevents node disk pressure from large repos)
 - Webhook receiver rate limiting
 
-## v0.8.0 - Sync transparency
+## v0.9.0 - Sync transparency
 
 Answer "what did the last sync actually do" without reading agent logs.
 
@@ -29,7 +33,7 @@ Answer "what did the last sync actually do" without reading agent logs.
 - Post-sync health verification: confirm project state and tag providers, not just a scan 200
 - Drift detection: re-syncing the same commit reports unexpected changes
 
-## v0.9.0 - Scale
+## v0.10.0 - Scale
 
 Remove scaling walls for larger fleets. The scale test lands first and measures the contention before any fix is built.
 
@@ -43,7 +47,7 @@ v1.0.0 graduates the API from `stoker.io/v1alpha1` to `stoker.io/v1beta1`, with 
 
 It ships when these criteria hold:
 
-- v0.7.0 through v0.9.0 landed without breaking CRD schema changes, demonstrating the API shape is right
+- v0.8.0 through v0.10.0 landed without breaking CRD schema changes, demonstrating the API shape is right
 - Invalid configuration is rejected at apply time, not discovered at sync time
 - Behavior at 10+ gateways per CR is measured by the scale test and documented
 - The upgrade path between minor versions is covered by e2e tests

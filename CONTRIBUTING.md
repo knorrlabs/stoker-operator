@@ -13,7 +13,7 @@ Thanks for your interest in Stoker! This guide covers the local development work
 ## Setup
 
 ```bash
-git clone https://github.com/ia-eknorr/stoker-operator.git
+git clone https://github.com/knorrlabs/stoker-operator.git
 cd stoker-operator
 make setup    # configures git hooks
 ```

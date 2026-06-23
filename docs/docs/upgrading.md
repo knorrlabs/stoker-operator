@@ -22,7 +22,7 @@ Stoker is pre-1.0, so it follows pre-release SemVer:
 
 For a `0.x` package, the common version ranges all resolve to the same window. `^0.6.0`, `~0.6.0`, and `0.6.x` each mean `>=0.6.0 <0.7.0`. Pin to a minor and take patches freely; treat a minor bump as a deliberate, reviewed step.
 
-Breaking changes are flagged in the [CHANGELOG](https://github.com/ia-eknorr/stoker-operator/blob/main/CHANGELOG.md) three ways:
+Breaking changes are flagged in the [CHANGELOG](https://github.com/knorrlabs/stoker-operator/blob/main/CHANGELOG.md) three ways:
 
 - A conventional-commit `!` (for example `feat!:`).
 - A `### Removed` section.
@@ -54,14 +54,14 @@ Use this for any patch bump inside a minor (for example `0.6.0` to `0.6.1`).
 2. **Upgrade the release:**
 
    ```bash
-   helm upgrade stoker oci://ghcr.io/ia-eknorr/charts/stoker-operator \
+   helm upgrade stoker oci://ghcr.io/knorrlabs/charts/stoker-operator \
      -n stoker-system --version <target-version>
    ```
 
 3. **Apply CRD changes by hand if the CRD changed.** `helm upgrade` does not touch `crds/`, so a `GatewaySync` schema change is skipped silently. Check the CHANGELOG for a CRD change between your versions. If there is one, pull the chart and apply the CRD directly:
 
    ```bash
-   helm pull oci://ghcr.io/ia-eknorr/charts/stoker-operator \
+   helm pull oci://ghcr.io/knorrlabs/charts/stoker-operator \
      --version <target-version> --untar
    kubectl apply -f stoker-operator/crds/
    ```

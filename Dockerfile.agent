@@ -12,7 +12,7 @@ COPY . .
 
 ARG VERSION=dev
 RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} \
-    go build -a -ldflags "-X github.com/ia-eknorr/stoker-operator/internal/agent.agentVersion=${VERSION}" \
+    go build -a -ldflags "-X github.com/knorrlabs/stoker-operator/internal/agent.agentVersion=${VERSION}" \
     -o agent cmd/agent/main.go
 
 # Alpine with git and openssh — no shell session risk with readOnlyRootFilesystem

@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Stoker is a Kubernetes operator that continuously syncs Ignition SCADA gateway configuration from Git. It uses a controller + agent sidecar architecture where the controller resolves git refs via `ls-remote` (no clone) and agents independently clone repos to sync files to gateway pods.
 
-**Module:** `github.com/ia-eknorr/stoker-operator`
+**Module:** `github.com/knorrlabs/stoker-operator`
 **CRD:** `GatewaySync` (`stoker.io/v1alpha1`, short name `gs`)
 
 ## Build & Dev Commands
@@ -44,8 +44,8 @@ go test ./internal/syncengine/ -run TestBuildPlan -v
 
 | Binary | Entry | Image | Purpose |
 |--------|-------|-------|---------|
-| controller | `cmd/controller/main.go` | `ghcr.io/ia-eknorr/stoker-operator` | Reconciles CRs, resolves git refs, discovers gateways |
-| agent | `cmd/agent/main.go` | `ghcr.io/ia-eknorr/stoker-agent` | Runs as native sidecar, clones repo, syncs files to gateway |
+| controller | `cmd/controller/main.go` | `ghcr.io/knorrlabs/stoker-operator` | Reconciles CRs, resolves git refs, discovers gateways |
+| agent | `cmd/agent/main.go` | `ghcr.io/knorrlabs/stoker-agent` | Runs as native sidecar, clones repo, syncs files to gateway |
 
 ### Controller ↔ Agent Communication
 

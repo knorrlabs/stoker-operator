@@ -13,7 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	stokerv1alpha1 "github.com/ia-eknorr/stoker-operator/api/v1alpha1"
+	stokerv1alpha1 "github.com/knorrlabs/stoker-operator/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 )
 

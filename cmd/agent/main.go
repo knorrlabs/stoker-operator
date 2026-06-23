@@ -19,7 +19,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	"github.com/ia-eknorr/stoker-operator/internal/agent"
+	"github.com/knorrlabs/stoker-operator/internal/agent"
 )
 
 func main() {

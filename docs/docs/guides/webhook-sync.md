@@ -22,7 +22,7 @@ webhookReceiver:
 Or via `--set`:
 
 ```bash
-helm upgrade stoker oci://ghcr.io/ia-eknorr/charts/stoker-operator \
+helm upgrade stoker oci://ghcr.io/knorrlabs/charts/stoker-operator \
   -n stoker-system --set webhookReceiver.enabled=true
 ```
 

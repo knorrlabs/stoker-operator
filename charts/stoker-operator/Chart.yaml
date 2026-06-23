@@ -2,11 +2,11 @@ apiVersion: v2
 name: stoker-operator
 description: Kubernetes operator that syncs Ignition gateway projects from a Git repository
 type: application
-version: 0.4.8
-appVersion: "0.4.8"
+version: 0.7.0
+appVersion: "0.7.0"
 kubeVersion: ">= 1.28.0"
-home: https://github.com/ia-eknorr/stoker-operator
-icon: https://raw.githubusercontent.com/ia-eknorr/stoker-operator/main/docs/static/img/logo.png
+home: https://github.com/knorrlabs/stoker-operator
+icon: https://raw.githubusercontent.com/knorrlabs/stoker-operator/main/docs/static/img/logo.png
 keywords:
   - ignition
   - stoker

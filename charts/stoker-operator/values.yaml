@@ -5,7 +5,7 @@ replicaCount: 1
 # -- Controller container image configuration.
 image:
   # -- Image repository for the controller manager.
-  repository: ghcr.io/ia-eknorr/stoker-operator
+  repository: ghcr.io/knorrlabs/stoker-operator
   # -- Image tag. Defaults to the chart's appVersion if empty.
   tag: ""
   # -- Image pull policy (Always, IfNotPresent, Never).
@@ -14,7 +14,7 @@ image:
 # -- Agent sidecar image injected into gateway pods by the webhook.
 agentImage:
   # -- Image repository for the sync agent sidecar.
-  repository: ghcr.io/ia-eknorr/stoker-agent
+  repository: ghcr.io/knorrlabs/stoker-agent
   # -- Image tag. Defaults to the chart's appVersion if empty.
   tag: ""
 

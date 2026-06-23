@@ -18,11 +18,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
-	"github.com/ia-eknorr/stoker-operator/internal/git"
-	"github.com/ia-eknorr/stoker-operator/internal/ignition"
-	"github.com/ia-eknorr/stoker-operator/internal/syncengine"
-	"github.com/ia-eknorr/stoker-operator/pkg/conditions"
-	stokertypes "github.com/ia-eknorr/stoker-operator/pkg/types"
+	"github.com/knorrlabs/stoker-operator/internal/git"
+	"github.com/knorrlabs/stoker-operator/internal/ignition"
+	"github.com/knorrlabs/stoker-operator/internal/syncengine"
+	"github.com/knorrlabs/stoker-operator/pkg/conditions"
+	stokertypes "github.com/knorrlabs/stoker-operator/pkg/types"
 )
 
 const defaultProfileName = "default"

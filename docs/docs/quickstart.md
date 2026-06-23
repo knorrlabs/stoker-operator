@@ -28,7 +28,7 @@ If cert-manager isn't installed yet, follow the [default static install](https:/
 ## 1. Install the Stoker operator
 
 ```bash
-helm install stoker oci://ghcr.io/ia-eknorr/charts/stoker-operator \
+helm install stoker oci://ghcr.io/knorrlabs/charts/stoker-operator \
   -n stoker-system --create-namespace
 ```
 

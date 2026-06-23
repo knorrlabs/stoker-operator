@@ -13,8 +13,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
-	"github.com/ia-eknorr/stoker-operator/internal/ignition"
-	stokertypes "github.com/ia-eknorr/stoker-operator/pkg/types"
+	"github.com/knorrlabs/stoker-operator/internal/ignition"
+	stokertypes "github.com/knorrlabs/stoker-operator/pkg/types"
 )
 
 // newTestAgent wires an Agent against a fake K8s client and a stub gateway

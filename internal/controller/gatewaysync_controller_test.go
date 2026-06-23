@@ -17,10 +17,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	stokerv1alpha1 "github.com/ia-eknorr/stoker-operator/api/v1alpha1"
-	"github.com/ia-eknorr/stoker-operator/internal/git"
-	"github.com/ia-eknorr/stoker-operator/pkg/conditions"
-	stokertypes "github.com/ia-eknorr/stoker-operator/pkg/types"
+	stokerv1alpha1 "github.com/knorrlabs/stoker-operator/api/v1alpha1"
+	"github.com/knorrlabs/stoker-operator/internal/git"
+	"github.com/knorrlabs/stoker-operator/pkg/conditions"
+	stokertypes "github.com/knorrlabs/stoker-operator/pkg/types"
 )
 
 // fakeGitClient is a test double for git.Client.

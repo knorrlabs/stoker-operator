@@ -5,12 +5,12 @@
 # Stoker
 
 <p align="center">
-  <a href="https://github.com/ia-eknorr/stoker-operator/actions/workflows/lint.yml"><img src="https://github.com/ia-eknorr/stoker-operator/actions/workflows/lint.yml/badge.svg" alt="Lint"></a>
-  <a href="https://github.com/ia-eknorr/stoker-operator/actions/workflows/unit-test.yml"><img src="https://github.com/ia-eknorr/stoker-operator/actions/workflows/unit-test.yml/badge.svg" alt="Test"></a>
-  <a href="https://github.com/ia-eknorr/stoker-operator/releases/latest"><img src="https://img.shields.io/github/v/release/ia-eknorr/stoker-operator" alt="Release"></a>
-  <a href="https://github.com/ia-eknorr/stoker-operator/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License: MIT"></a>
+  <a href="https://github.com/knorrlabs/stoker-operator/actions/workflows/lint.yml"><img src="https://github.com/knorrlabs/stoker-operator/actions/workflows/lint.yml/badge.svg" alt="Lint"></a>
+  <a href="https://github.com/knorrlabs/stoker-operator/actions/workflows/unit-test.yml"><img src="https://github.com/knorrlabs/stoker-operator/actions/workflows/unit-test.yml/badge.svg" alt="Test"></a>
+  <a href="https://github.com/knorrlabs/stoker-operator/releases/latest"><img src="https://img.shields.io/github/v/release/knorrlabs/stoker-operator" alt="Release"></a>
+  <a href="https://github.com/knorrlabs/stoker-operator/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License: MIT"></a>
   <a href="https://knorrlabs.github.io/stoker-operator/"><img src="https://img.shields.io/badge/docs-knorrlabs.github.io-blue" alt="Docs"></a>
-  <a href="https://goreportcard.com/report/github.com/ia-eknorr/stoker-operator"><img src="https://goreportcard.com/badge/github.com/ia-eknorr/stoker-operator" alt="Go Report Card"></a>
+  <a href="https://goreportcard.com/report/github.com/knorrlabs/stoker-operator"><img src="https://goreportcard.com/badge/github.com/knorrlabs/stoker-operator" alt="Go Report Card"></a>
 </p>
 
 > **stok·er** /ˈstōkər/ — *a person who tends the fire in a furnace, feeding it fuel to keep it burning.*
@@ -35,7 +35,7 @@ Stoker tends your Ignition gateways, continuously feeding them configuration fro
 # https://cert-manager.io/docs/installation/
 
 # Install the operator
-helm install stoker oci://ghcr.io/ia-eknorr/charts/stoker-operator \
+helm install stoker oci://ghcr.io/knorrlabs/charts/stoker-operator \
   -n stoker-system --create-namespace
 ```
 

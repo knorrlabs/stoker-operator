@@ -20,10 +20,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
-	stokerv1alpha1 "github.com/ia-eknorr/stoker-operator/api/v1alpha1"
-	"github.com/ia-eknorr/stoker-operator/internal/controller"
-	"github.com/ia-eknorr/stoker-operator/internal/git"
-	iswebhook "github.com/ia-eknorr/stoker-operator/internal/webhook"
+	stokerv1alpha1 "github.com/knorrlabs/stoker-operator/api/v1alpha1"
+	"github.com/knorrlabs/stoker-operator/internal/controller"
+	"github.com/knorrlabs/stoker-operator/internal/git"
+	iswebhook "github.com/knorrlabs/stoker-operator/internal/webhook"
 	// +kubebuilder:scaffold:imports
 )
 

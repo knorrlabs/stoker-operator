@@ -10,7 +10,7 @@ description: All configurable values for the Stoker operator Helm chart.
 The Stoker operator is installed via Helm:
 
 ```bash
-helm install stoker oci://ghcr.io/ia-eknorr/charts/stoker-operator \
+helm install stoker oci://ghcr.io/knorrlabs/charts/stoker-operator \
   -n stoker-system --create-namespace
 ```
 
@@ -19,13 +19,13 @@ helm install stoker oci://ghcr.io/ia-eknorr/charts/stoker-operator \
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `replicaCount` | int | `1` | Number of controller replicas. Only one replica holds the leader lock at a time; additional replicas provide fast failover. |
-| `image.repository` | string | `ghcr.io/ia-eknorr/stoker-operator` | Image repository for the controller manager. |
+| `image.repository` | string | `ghcr.io/knorrlabs/stoker-operator` | Image repository for the controller manager. |
 | `image.tag` | string | `""` | Image tag. Defaults to the chart's appVersion if empty. |
 | `image.pullPolicy` | string | `IfNotPresent` | Image pull policy. |
 | `imagePullSecrets` | list | `[]` | Credentials for private container registries. |
 | `nameOverride` | string | `""` | Override the chart name used in resource names. |
 | `fullnameOverride` | string | `""` | Override the full release name. |
-| `agentImage.repository` | string | `ghcr.io/ia-eknorr/stoker-agent` | Image repository for the sync agent sidecar. |
+| `agentImage.repository` | string | `ghcr.io/knorrlabs/stoker-agent` | Image repository for the sync agent sidecar. |
 | `agentImage.tag` | string | `""` | Agent image tag. Defaults to the chart's appVersion if empty. |
 | `leaderElection.enabled` | bool | `true` | Enable leader election. Disable only for single-replica dev setups. |
 | `resources.requests.cpu` | string | `10m` | Controller CPU request. |

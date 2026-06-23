@@ -14,8 +14,8 @@ import (
 	"github.com/bmatcuk/doublestar/v4"
 	"github.com/tidwall/sjson"
 
-	"github.com/ia-eknorr/stoker-operator/internal/syncengine"
-	stokertypes "github.com/ia-eknorr/stoker-operator/pkg/types"
+	"github.com/knorrlabs/stoker-operator/internal/syncengine"
+	stokertypes "github.com/knorrlabs/stoker-operator/pkg/types"
 )
 
 // TemplateContext holds the variables available in mapping templates.

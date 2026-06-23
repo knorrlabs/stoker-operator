@@ -138,7 +138,7 @@ lint-config: golangci-lint ## Verify golangci-lint linter configuration
 ##@ Build
 
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
-LDFLAGS := -X github.com/ia-eknorr/stoker-operator/internal/agent.agentVersion=$(VERSION)
+LDFLAGS := -X github.com/knorrlabs/stoker-operator/internal/agent.agentVersion=$(VERSION)
 
 .PHONY: build
 build: manifests generate fmt vet ## Build controller and agent binaries.

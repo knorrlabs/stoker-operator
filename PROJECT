@@ -7,7 +7,7 @@ domain: stoker.io
 layout:
 - go.kubebuilder.io/v4
 projectName: stoker-operator
-repo: github.com/ia-eknorr/stoker-operator
+repo: github.com/knorrlabs/stoker-operator
 resources:
 - api:
     crdVersion: v1
@@ -16,6 +16,6 @@ resources:
   domain: stoker.io
   group: ""
   kind: GatewaySync
-  path: github.com/ia-eknorr/stoker-operator/api/v1alpha1
+  path: github.com/knorrlabs/stoker-operator/api/v1alpha1
   version: v1alpha1
 version: "3"
