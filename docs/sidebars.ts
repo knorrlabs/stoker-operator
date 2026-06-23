@@ -12,7 +12,7 @@ const sidebars: SidebarsConfig = {
       type: "category",
       label: "Getting Started",
       collapsed: false,
-      items: ["quickstart", "installation"],
+      items: ["quickstart", "installation", "upgrading"],
     },
     {
       type: "category",
@@ -26,7 +26,6 @@ const sidebars: SidebarsConfig = {
         "guides/webhook-sync",
         "guides/monitoring",
         "guides/multi-site-deployment",
-        "guides/upgrading",
       ],
     },
     {

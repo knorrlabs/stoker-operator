@@ -118,6 +118,10 @@ const config: Config = {
               href: "https://github.com/ia-eknorr/stoker-operator",
             },
             {
+              label: "Changelog",
+              href: "https://github.com/ia-eknorr/stoker-operator/blob/main/CHANGELOG.md",
+            },
+            {
               label: "Helm Chart",
               href: "https://github.com/ia-eknorr/stoker-operator/tree/main/charts/stoker-operator",
             },
