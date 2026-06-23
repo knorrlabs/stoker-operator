@@ -7,7 +7,7 @@ const config: Config = {
   tagline: "Git-driven configuration sync for Ignition SCADA gateways",
   favicon: "img/logo.png",
 
-  url: "https://ia-eknorr.github.io",
+  url: "https://knorrlabs.github.io",
   baseUrl: "/stoker-operator/",
 
   organizationName: "knorrlabs",
