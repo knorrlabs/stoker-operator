@@ -1,4 +1,4 @@
-module github.com/ia-eknorr/stoker-operator
+module github.com/knorrlabs/stoker-operator
 
 go 1.26.0
 

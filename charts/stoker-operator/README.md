@@ -1,10 +1,10 @@
 # stoker-operator
 
-![Version: 0.4.8](https://img.shields.io/badge/Version-0.4.8-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.4.8](https://img.shields.io/badge/AppVersion-0.4.8-informational?style=flat-square)
+![Version: 0.7.0](https://img.shields.io/badge/Version-0.7.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.7.0](https://img.shields.io/badge/AppVersion-0.7.0-informational?style=flat-square)
 
 Kubernetes operator that syncs Ignition gateway projects from a Git repository
 
-**Homepage:** <https://github.com/ia-eknorr/stoker-operator>
+**Homepage:** <https://github.com/knorrlabs/stoker-operator>
 
 ## Prerequisites
 
@@ -15,7 +15,7 @@ Kubernetes operator that syncs Ignition gateway projects from a Git repository
 ## Installation
 
 ```bash
-helm install stoker oci://ghcr.io/ia-eknorr/charts/stoker-operator
+helm install stoker oci://ghcr.io/knorrlabs/charts/stoker-operator
 ```
 
 See the post-install notes (`helm get notes <release>`) for next steps: creating
@@ -82,8 +82,8 @@ Kubernetes: `>= 1.28.0`
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | affinity | object | `{}` | Affinity rules for scheduling the controller pod. |
-| agentImage | object | `{"repository":"ghcr.io/ia-eknorr/stoker-agent","tag":""}` | Agent sidecar image injected into gateway pods by the webhook. |
-| agentImage.repository | string | `"ghcr.io/ia-eknorr/stoker-agent"` | Image repository for the sync agent sidecar. |
+| agentImage | object | `{"repository":"ghcr.io/knorrlabs/stoker-agent","tag":""}` | Agent sidecar image injected into gateway pods by the webhook. |
+| agentImage.repository | string | `"ghcr.io/knorrlabs/stoker-agent"` | Image repository for the sync agent sidecar. |
 | agentImage.tag | string | `""` | Image tag. Defaults to the chart's appVersion if empty. |
 | certManager | object | `{"enabled":true}` | cert-manager integration for webhook TLS certificates. Requires cert-manager to be installed in the cluster. |
 | certManager.enabled | bool | `true` | Create a self-signed Issuer and Certificate for webhook TLS. Requires cert-manager to be installed in the cluster. |
@@ -95,9 +95,9 @@ Kubernetes: `>= 1.28.0`
 | grafanaDashboard.enabled | bool | `false` | Create a ConfigMap containing the Stoker Grafana dashboard. Enable when your Grafana uses the k8s-sidecar for dashboard auto-discovery (default in kube-prometheus-stack). |
 | grafanaDashboard.labels | object | `{}` | Additional labels for the dashboard ConfigMap. Override if your sidecar uses a label other than `grafana_dashboard: "1"`. |
 | grafanaDashboard.namespace | string | `""` | Namespace for the dashboard ConfigMap. Defaults to the release namespace. Set this to your Grafana namespace if the sidecar only watches a specific namespace. |
-| image | object | `{"pullPolicy":"IfNotPresent","repository":"ghcr.io/ia-eknorr/stoker-operator","tag":""}` | Controller container image configuration. |
+| image | object | `{"pullPolicy":"IfNotPresent","repository":"ghcr.io/knorrlabs/stoker-operator","tag":""}` | Controller container image configuration. |
 | image.pullPolicy | string | `"IfNotPresent"` | Image pull policy (Always, IfNotPresent, Never). |
-| image.repository | string | `"ghcr.io/ia-eknorr/stoker-operator"` | Image repository for the controller manager. |
+| image.repository | string | `"ghcr.io/knorrlabs/stoker-operator"` | Image repository for the controller manager. |
 | image.tag | string | `""` | Image tag. Defaults to the chart's appVersion if empty. |
 | imagePullSecrets | list | `[]` | Credentials for private container registries. Example:   imagePullSecrets:     - name: my-registry-secret |
 | leaderElection | object | `{"enabled":true}` | Leader election prevents multiple controller instances from reconciling simultaneously. Disable only for single-replica development setups. |

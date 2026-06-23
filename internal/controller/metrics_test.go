@@ -7,9 +7,9 @@ import (
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	stokerv1alpha1 "github.com/ia-eknorr/stoker-operator/api/v1alpha1"
-	"github.com/ia-eknorr/stoker-operator/pkg/conditions"
-	stokertypes "github.com/ia-eknorr/stoker-operator/pkg/types"
+	stokerv1alpha1 "github.com/knorrlabs/stoker-operator/api/v1alpha1"
+	"github.com/knorrlabs/stoker-operator/pkg/conditions"
+	stokertypes "github.com/knorrlabs/stoker-operator/pkg/types"
 )
 
 func TestReconcileMetricsIncrement(t *testing.T) {

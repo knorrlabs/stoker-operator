@@ -24,7 +24,7 @@ kubectl wait --for=condition=Available deployment --all -n cert-manager --timeou
 ## Install the operator
 
 ```bash
-helm install stoker oci://ghcr.io/ia-eknorr/charts/stoker-operator \
+helm install stoker oci://ghcr.io/knorrlabs/charts/stoker-operator \
   -n stoker-system --create-namespace
 ```
 
@@ -43,7 +43,7 @@ Sidecar injection is enabled by default in all namespaces (except `kube-system` 
 For regulated environments that require explicit namespace opt-in (e.g., IEC 62443 zone boundaries), enable the namespace label requirement:
 
 ```bash
-helm upgrade stoker oci://ghcr.io/ia-eknorr/charts/stoker-operator \
+helm upgrade stoker oci://ghcr.io/knorrlabs/charts/stoker-operator \
   -n stoker-system --set webhook.namespaceSelector.requireLabel=true
 ```
 
@@ -60,7 +60,7 @@ The agent sidecar needs permission to read GatewaySync CRs and write status Conf
 To manage agent RBAC externally (e.g., in GitOps-managed environments), disable auto-binding:
 
 ```bash
-helm upgrade stoker oci://ghcr.io/ia-eknorr/charts/stoker-operator \
+helm upgrade stoker oci://ghcr.io/knorrlabs/charts/stoker-operator \
   -n stoker-system --set rbac.autoBindAgent.enabled=false
 ```
 
@@ -79,7 +79,7 @@ The default service account name for the [Ignition Helm chart](https://charts.ia
 ## Upgrading
 
 ```bash
-helm upgrade stoker oci://ghcr.io/ia-eknorr/charts/stoker-operator \
+helm upgrade stoker oci://ghcr.io/knorrlabs/charts/stoker-operator \
   -n stoker-system
 ```
 

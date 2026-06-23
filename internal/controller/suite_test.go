@@ -17,7 +17,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	stokerv1alpha1 "github.com/ia-eknorr/stoker-operator/api/v1alpha1"
+	stokerv1alpha1 "github.com/knorrlabs/stoker-operator/api/v1alpha1"
 	// +kubebuilder:scaffold:imports
 )
 

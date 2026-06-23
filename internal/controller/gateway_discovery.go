@@ -14,9 +14,9 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	stokerv1alpha1 "github.com/ia-eknorr/stoker-operator/api/v1alpha1"
-	"github.com/ia-eknorr/stoker-operator/pkg/conditions"
-	stokertypes "github.com/ia-eknorr/stoker-operator/pkg/types"
+	stokerv1alpha1 "github.com/knorrlabs/stoker-operator/api/v1alpha1"
+	"github.com/knorrlabs/stoker-operator/pkg/conditions"
+	stokertypes "github.com/knorrlabs/stoker-operator/pkg/types"
 )
 
 // findGatewaySyncForPod reads the stoker.io/cr-name annotation from a pod

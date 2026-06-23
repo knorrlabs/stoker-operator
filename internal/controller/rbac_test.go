@@ -15,7 +15,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 
-	stokerv1alpha1 "github.com/ia-eknorr/stoker-operator/api/v1alpha1"
+	stokerv1alpha1 "github.com/knorrlabs/stoker-operator/api/v1alpha1"
 )
 
 // TestEnsureAgentRoleBindingPreservesSubjectsOnListError guards against a

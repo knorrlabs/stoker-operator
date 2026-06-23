@@ -17,14 +17,14 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
-	stokerv1alpha1 "github.com/ia-eknorr/stoker-operator/api/v1alpha1"
-	stokertypes "github.com/ia-eknorr/stoker-operator/pkg/types"
+	stokerv1alpha1 "github.com/knorrlabs/stoker-operator/api/v1alpha1"
+	stokertypes "github.com/knorrlabs/stoker-operator/pkg/types"
 )
 
 const (
 	agentContainerName = "stoker-agent"
 
-	defaultAgentImage = "ghcr.io/ia-eknorr/stoker-agent:latest"
+	defaultAgentImage = "ghcr.io/knorrlabs/stoker-agent:latest"
 
 	// Volume names injected by the webhook.
 	volumeSyncRepo       = "sync-repo"

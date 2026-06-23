@@ -15,8 +15,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
-	stokerv1alpha1 "github.com/ia-eknorr/stoker-operator/api/v1alpha1"
-	stokertypes "github.com/ia-eknorr/stoker-operator/pkg/types"
+	stokerv1alpha1 "github.com/knorrlabs/stoker-operator/api/v1alpha1"
+	stokertypes "github.com/knorrlabs/stoker-operator/pkg/types"
 )
 
 const (

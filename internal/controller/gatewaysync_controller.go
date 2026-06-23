@@ -33,10 +33,10 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	gogithttp "github.com/go-git/go-git/v5/plumbing/transport/http"
 
-	stokerv1alpha1 "github.com/ia-eknorr/stoker-operator/api/v1alpha1"
-	"github.com/ia-eknorr/stoker-operator/internal/git"
-	"github.com/ia-eknorr/stoker-operator/pkg/conditions"
-	stokertypes "github.com/ia-eknorr/stoker-operator/pkg/types"
+	stokerv1alpha1 "github.com/knorrlabs/stoker-operator/api/v1alpha1"
+	"github.com/knorrlabs/stoker-operator/internal/git"
+	"github.com/knorrlabs/stoker-operator/pkg/conditions"
+	stokertypes "github.com/knorrlabs/stoker-operator/pkg/types"
 )
 
 const (

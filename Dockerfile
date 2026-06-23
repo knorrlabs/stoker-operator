@@ -21,7 +21,7 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o ma
 
 # Build agent
 RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} \
-    go build -a -ldflags "-X github.com/ia-eknorr/stoker-operator/internal/agent.agentVersion=${VERSION}" \
+    go build -a -ldflags "-X github.com/knorrlabs/stoker-operator/internal/agent.agentVersion=${VERSION}" \
     -o agent cmd/agent/main.go
 
 # Use distroless as minimal base image to package the binaries

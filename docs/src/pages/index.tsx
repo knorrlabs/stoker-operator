@@ -57,7 +57,7 @@ const quickLinks = [
   { label: "Quickstart", to: "/quickstart", description: "Up and running in minutes" },
   { label: "Installation", to: "/installation", description: "Helm chart and configuration" },
   { label: "GatewaySync CR", to: "/reference/gatewaysync-cr", description: "Full API reference" },
-  { label: "Changelog", to: "https://github.com/ia-eknorr/stoker-operator/blob/main/CHANGELOG.md", description: "What's new in each release" },
+  { label: "Changelog", to: "https://github.com/knorrlabs/stoker-operator/blob/main/CHANGELOG.md", description: "What's new in each release" },
 ];
 
 function Hero() {

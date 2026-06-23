@@ -18,8 +18,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
-	"github.com/ia-eknorr/stoker-operator/internal/ignition"
-	"github.com/ia-eknorr/stoker-operator/internal/syncengine"
+	"github.com/knorrlabs/stoker-operator/internal/ignition"
+	"github.com/knorrlabs/stoker-operator/internal/syncengine"
 )
 
 // TestSyncOnceScanFailureIsRetryable pins the recovery path for a gateway

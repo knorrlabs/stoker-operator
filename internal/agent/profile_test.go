@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	stokertypes "github.com/ia-eknorr/stoker-operator/pkg/types"
+	stokertypes "github.com/knorrlabs/stoker-operator/pkg/types"
 )
 
 const (

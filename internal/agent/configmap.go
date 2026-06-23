@@ -12,7 +12,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
-	stokertypes "github.com/ia-eknorr/stoker-operator/pkg/types"
+	stokertypes "github.com/knorrlabs/stoker-operator/pkg/types"
 )
 
 // MetadataConfigMapName returns the metadata ConfigMap name for a CR.

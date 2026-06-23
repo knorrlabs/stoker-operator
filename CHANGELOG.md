@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 > **Upgrading?** See the [Upgrading guide](https://knorrlabs.github.io/stoker-operator/upgrading) for the version policy, Kubernetes compatibility matrix, the CRD-on-`helm upgrade` caveat, and GitOps / ArgoCD specifics.
 
+## [v0.7.0] - 2026-06-23
+
+Organization migration to **knorrlabs**. No functional changes — runtime behavior is identical to v0.6.1. This release re-homes the Go module, container images, and Helm chart under the new org so consumers no longer depend on the `ia-eknorr` GitHub redirect.
+
+### Changed
+
+- **Go module path** is now `github.com/knorrlabs/stoker-operator` (was `github.com/ia-eknorr/stoker-operator`). The module path is part of a module's identity, so **pre-v0.7.0 tags do not resolve on the new path** — `go get github.com/knorrlabs/stoker-operator@v0.6.1` fails the module-path-mismatch check. Use v0.7.0 or later. Consumers that cannot upgrade immediately can bridge temporarily with `go mod edit -replace github.com/ia-eknorr/stoker-operator=github.com/knorrlabs/stoker-operator@v0.7.0` (the `-replace` is inert without a matching `require github.com/ia-eknorr/stoker-operator` line).
+- **Container images** now publish to `ghcr.io/knorrlabs/stoker-operator` and `ghcr.io/knorrlabs/stoker-agent`. The chart's `image.repository` / `agentImage.repository` defaults and the webhook's built-in default agent image are updated to match.
+- **Helm chart** now publishes to `oci://ghcr.io/knorrlabs/charts/stoker-operator`.
+
 ## [v0.6.1] - 2026-06-12
 
 A correctness, security, and observability hardening release. No new features, CRD changes, or breaking changes; safe to upgrade in place from v0.6.0.
@@ -254,25 +264,26 @@ Initial release — controller + agent sidecar for Git-driven Ignition gateway c
 - **Functional test suite** with phased kind cluster tests (phases 02-09)
 - Unit tests with envtest for controller and syncengine
 
-[v0.6.1]: https://github.com/ia-eknorr/stoker-operator/releases/tag/v0.6.1
-[v0.6.0]: https://github.com/ia-eknorr/stoker-operator/releases/tag/v0.6.0
-[v0.5.3]: https://github.com/ia-eknorr/stoker-operator/releases/tag/v0.5.3
-[v0.5.2]: https://github.com/ia-eknorr/stoker-operator/releases/tag/v0.5.2
-[v0.5.1]: https://github.com/ia-eknorr/stoker-operator/releases/tag/v0.5.1
-[v0.5.0]: https://github.com/ia-eknorr/stoker-operator/releases/tag/v0.5.0
-[v0.4.10]: https://github.com/ia-eknorr/stoker-operator/releases/tag/v0.4.10
-[v0.4.9]: https://github.com/ia-eknorr/stoker-operator/releases/tag/v0.4.9
-[v0.4.8]: https://github.com/ia-eknorr/stoker-operator/releases/tag/v0.4.8
-[v0.4.7]: https://github.com/ia-eknorr/stoker-operator/releases/tag/v0.4.7
-[v0.4.6]: https://github.com/ia-eknorr/stoker-operator/releases/tag/v0.4.6
-[v0.4.5]: https://github.com/ia-eknorr/stoker-operator/releases/tag/v0.4.5
-[v0.4.4]: https://github.com/ia-eknorr/stoker-operator/releases/tag/v0.4.4
-[v0.4.3]: https://github.com/ia-eknorr/stoker-operator/releases/tag/v0.4.3
-[v0.4.2]: https://github.com/ia-eknorr/stoker-operator/releases/tag/v0.4.2
-[v0.4.1]: https://github.com/ia-eknorr/stoker-operator/releases/tag/v0.4.1
-[v0.4.0]: https://github.com/ia-eknorr/stoker-operator/releases/tag/v0.4.0
-[v0.3.0]: https://github.com/ia-eknorr/stoker-operator/releases/tag/v0.3.0
-[v0.2.0]: https://github.com/ia-eknorr/stoker-operator/releases/tag/v0.2.0
-[v0.1.2]: https://github.com/ia-eknorr/stoker-operator/releases/tag/v0.1.2
-[v0.1.1]: https://github.com/ia-eknorr/stoker-operator/releases/tag/v0.1.1
-[v0.1.0]: https://github.com/ia-eknorr/stoker-operator/releases/tag/v0.1.0
+[v0.7.0]: https://github.com/knorrlabs/stoker-operator/releases/tag/v0.7.0
+[v0.6.1]: https://github.com/knorrlabs/stoker-operator/releases/tag/v0.6.1
+[v0.6.0]: https://github.com/knorrlabs/stoker-operator/releases/tag/v0.6.0
+[v0.5.3]: https://github.com/knorrlabs/stoker-operator/releases/tag/v0.5.3
+[v0.5.2]: https://github.com/knorrlabs/stoker-operator/releases/tag/v0.5.2
+[v0.5.1]: https://github.com/knorrlabs/stoker-operator/releases/tag/v0.5.1
+[v0.5.0]: https://github.com/knorrlabs/stoker-operator/releases/tag/v0.5.0
+[v0.4.10]: https://github.com/knorrlabs/stoker-operator/releases/tag/v0.4.10
+[v0.4.9]: https://github.com/knorrlabs/stoker-operator/releases/tag/v0.4.9
+[v0.4.8]: https://github.com/knorrlabs/stoker-operator/releases/tag/v0.4.8
+[v0.4.7]: https://github.com/knorrlabs/stoker-operator/releases/tag/v0.4.7
+[v0.4.6]: https://github.com/knorrlabs/stoker-operator/releases/tag/v0.4.6
+[v0.4.5]: https://github.com/knorrlabs/stoker-operator/releases/tag/v0.4.5
+[v0.4.4]: https://github.com/knorrlabs/stoker-operator/releases/tag/v0.4.4
+[v0.4.3]: https://github.com/knorrlabs/stoker-operator/releases/tag/v0.4.3
+[v0.4.2]: https://github.com/knorrlabs/stoker-operator/releases/tag/v0.4.2
+[v0.4.1]: https://github.com/knorrlabs/stoker-operator/releases/tag/v0.4.1
+[v0.4.0]: https://github.com/knorrlabs/stoker-operator/releases/tag/v0.4.0
+[v0.3.0]: https://github.com/knorrlabs/stoker-operator/releases/tag/v0.3.0
+[v0.2.0]: https://github.com/knorrlabs/stoker-operator/releases/tag/v0.2.0
+[v0.1.2]: https://github.com/knorrlabs/stoker-operator/releases/tag/v0.1.2
+[v0.1.1]: https://github.com/knorrlabs/stoker-operator/releases/tag/v0.1.1
+[v0.1.0]: https://github.com/knorrlabs/stoker-operator/releases/tag/v0.1.0
