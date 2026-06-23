@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
-> **Upgrading?** See the [Upgrading guide](https://ia-eknorr.github.io/stoker-operator/upgrading) for the version policy, Kubernetes compatibility matrix, the CRD-on-`helm upgrade` caveat, and GitOps / ArgoCD specifics.
+> **Upgrading?** See the [Upgrading guide](https://knorrlabs.github.io/stoker-operator/upgrading) for the version policy, Kubernetes compatibility matrix, the CRD-on-`helm upgrade` caveat, and GitOps / ArgoCD specifics.
 
 ## [v0.6.1] - 2026-06-12
 

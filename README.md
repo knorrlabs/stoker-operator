@@ -9,7 +9,7 @@
   <a href="https://github.com/ia-eknorr/stoker-operator/actions/workflows/unit-test.yml"><img src="https://github.com/ia-eknorr/stoker-operator/actions/workflows/unit-test.yml/badge.svg" alt="Test"></a>
   <a href="https://github.com/ia-eknorr/stoker-operator/releases/latest"><img src="https://img.shields.io/github/v/release/ia-eknorr/stoker-operator" alt="Release"></a>
   <a href="https://github.com/ia-eknorr/stoker-operator/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License: MIT"></a>
-  <a href="https://ia-eknorr.github.io/stoker-operator/"><img src="https://img.shields.io/badge/docs-ia--eknorr.github.io-blue" alt="Docs"></a>
+  <a href="https://knorrlabs.github.io/stoker-operator/"><img src="https://img.shields.io/badge/docs-knorrlabs.github.io-blue" alt="Docs"></a>
   <a href="https://goreportcard.com/report/github.com/ia-eknorr/stoker-operator"><img src="https://goreportcard.com/badge/github.com/ia-eknorr/stoker-operator" alt="Go Report Card"></a>
 </p>
 
@@ -39,7 +39,7 @@ helm install stoker oci://ghcr.io/ia-eknorr/charts/stoker-operator \
   -n stoker-system --create-namespace
 ```
 
-For a complete walkthrough — from installing the operator to syncing projects to an Ignition gateway — see the **[Quickstart Guide](https://ia-eknorr.github.io/stoker-operator/quickstart)**.
+For a complete walkthrough — from installing the operator to syncing projects to an Ignition gateway — see the **[Quickstart Guide](https://knorrlabs.github.io/stoker-operator/quickstart)**.
 
 ## Architecture
 
@@ -63,7 +63,7 @@ flowchart LR
 
 | CRD | Short Name | Description |
 | --- | --- | --- |
-| [`GatewaySync`](https://ia-eknorr.github.io/stoker-operator/reference/gatewaysync-cr) | `gs` | Defines the git repository, auth, polling, sync profiles, and gateway connection settings |
+| [`GatewaySync`](https://knorrlabs.github.io/stoker-operator/reference/gatewaysync-cr) | `gs` | Defines the git repository, auth, polling, sync profiles, and gateway connection settings |
 
 ## Development
 
