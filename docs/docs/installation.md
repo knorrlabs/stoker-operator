@@ -87,7 +87,7 @@ helm upgrade stoker oci://ghcr.io/ia-eknorr/charts/stoker-operator \
 Helm installs CRDs from a chart's `crds/` directory only on first install. `helm upgrade` never updates them, so a `GatewaySync` schema change between versions is skipped silently unless you apply it by hand.
 :::
 
-See the [Upgrading guide](./guides/upgrading.md) for the full procedure: the version policy, the Kubernetes compatibility matrix, applying CRD changes, and GitOps / ArgoCD specifics.
+See the [Upgrading guide](./upgrading.md) for the full procedure: the version policy, the Kubernetes compatibility matrix, applying CRD changes, and GitOps / ArgoCD specifics.
 
 ## Uninstalling
 

@@ -1,5 +1,5 @@
 ---
-sidebar_position: 7
+sidebar_position: 3
 title: Upgrading
 description: Move Stoker between versions safely, including the CRD-on-helm-upgrade footgun and the Kubernetes compatibility matrix.
 ---
@@ -75,7 +75,7 @@ Use this for any patch bump inside a minor (for example `0.6.0` to `0.6.1`).
    kubectl get gs -A
    ```
 
-   See [Troubleshooting](../reference/troubleshooting.md) if a `GatewaySync` does not return to `Ready`.
+   See [Troubleshooting](./reference/troubleshooting.md) if a `GatewaySync` does not return to `Ready`.
 
 ### Worked example: `0.5.1` to `0.6.1`
 
