@@ -1,18 +1,15 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": [
+    "Renovate covers the dependencies it extracts: direct Go modules and the packages declared in docs/package.json.",
+    "Indirect Go modules and lockfile-only transitive npm packages are deliberately NOT Renovate's job here. Renovate's gomod manager skips `// indirect` requirements unless a matching tool directive exists, and its npm manager reads package.json rather than the lockfile, so neither surface is ever extracted. Dependabot security updates cover both, which is why both bots run on this repo. Do not add security:gomodIndirectSecurityUpdates to close the Go half: it would put Renovate back onto the one surface Dependabot owns cleanly and race it there."
+  ],
   "extends": ["github>knorrlabs/renovate-config"],
   "packageRules": [
     {
       "description": "Docs site is not shipped with the operator; group its churn into one PR.",
       "matchFileNames": ["docs/**"],
       "groupName": "docs dependencies"
-    },
-    {
-      "description": "Go indirect patches are noise individually; batch them.",
-      "matchManagers": ["gomod"],
-      "matchDepTypes": ["indirect"],
-      "matchUpdateTypes": ["patch"],
-      "groupName": "go indirect patches"
     },
     {
       "description": "Kubernetes libraries must version in lockstep.",
