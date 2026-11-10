@@ -243,11 +243,11 @@ func (r *GatewaySyncReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	// --- Step 5: Discover gateways ---
 
 	prevGatewayCount := len(gs.Status.DiscoveredGateways)
-	gateways, err := r.discoverGateways(ctx, &gs)
+	gateways, podCreated, err := r.discoverGateways(ctx, &gs)
 	if err != nil {
 		log.Error(err, "failed to discover gateways")
 	} else {
-		gateways = r.collectGatewayStatus(ctx, &gs, gateways)
+		gateways = r.collectGatewayStatus(ctx, &gs, gateways, podCreated)
 		gs.Status.DiscoveredGateways = gateways
 
 		if len(gateways) != prevGatewayCount {

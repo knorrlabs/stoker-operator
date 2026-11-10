@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
@@ -40,16 +41,21 @@ func (r *GatewaySyncReconciler) findGatewaySyncForPod(ctx context.Context, pod c
 
 // discoverGateways lists all pods in the CR's namespace with annotation stoker.io/cr-name
 // matching gs.Name. For each matching pod in Running phase, it builds a DiscoveredGateway.
-func (r *GatewaySyncReconciler) discoverGateways(ctx context.Context, gs *stokerv1alpha1.GatewaySync) ([]stokerv1alpha1.DiscoveredGateway, error) {
+//
+// It also returns each discovered pod's creationTimestamp keyed by pod name, so
+// collectGatewayStatus can tell a status entry written by this pod apart from one
+// left behind by a previous pod with the same name.
+func (r *GatewaySyncReconciler) discoverGateways(ctx context.Context, gs *stokerv1alpha1.GatewaySync) ([]stokerv1alpha1.DiscoveredGateway, map[string]metav1.Time, error) {
 	log := logf.FromContext(ctx)
 
 	// List all pods in the namespace
 	var podList corev1.PodList
 	if err := r.List(ctx, &podList, client.InNamespace(gs.Namespace)); err != nil {
-		return nil, fmt.Errorf("listing pods: %w", err)
+		return nil, nil, fmt.Errorf("listing pods: %w", err)
 	}
 
 	discovered := make([]stokerv1alpha1.DiscoveredGateway, 0, len(podList.Items))
+	podCreated := make(map[string]metav1.Time, len(podList.Items))
 
 	// Previous status by pod name, to emit MissingSidecar only on transition
 	// instead of on every reconcile (polling reconciles every 60s by default).
@@ -107,10 +113,11 @@ func (r *GatewaySyncReconciler) discoverGateways(ctx context.Context, gs *stoker
 		}
 
 		discovered = append(discovered, gateway)
+		podCreated[pod.Name] = pod.CreationTimestamp
 	}
 
 	log.V(1).Info("discovered gateways", "count", len(discovered))
-	return discovered, nil
+	return discovered, podCreated, nil
 }
 
 // hasSyncAgent checks if a pod has the stoker-agent sidecar container.
@@ -126,7 +133,18 @@ func hasSyncAgent(pod *corev1.Pod) bool {
 // collectGatewayStatus reads the ConfigMap stoker-status-{gs.Name} in gs.Namespace
 // and enriches each gateway with its sync status data. If the ConfigMap doesn't exist or a
 // gateway's status key is missing, the gateway remains with SyncStatus="Pending".
-func (r *GatewaySyncReconciler) collectGatewayStatus(ctx context.Context, gs *stokerv1alpha1.GatewaySync, gateways []stokerv1alpha1.DiscoveredGateway) []stokerv1alpha1.DiscoveredGateway {
+//
+// The status ConfigMap is keyed by pod (or gateway) name, so an entry can outlive the
+// pod that wrote it. Two kinds of entry are ignored rather than trusted (#186):
+//   - any entry for a pod discovered without a stoker-agent sidecar, since no agent
+//     on that pod can have written it; the gateway stays MissingSidecar.
+//   - an entry whose lastSyncTime is before the current pod's creationTimestamp,
+//     since it was written by a previous pod of the same name; the gateway stays
+//     Pending until the current pod's agent reports.
+//
+// podCreated maps pod name to creationTimestamp, as returned by discoverGateways.
+// A pod missing from it skips the staleness check.
+func (r *GatewaySyncReconciler) collectGatewayStatus(ctx context.Context, gs *stokerv1alpha1.GatewaySync, gateways []stokerv1alpha1.DiscoveredGateway, podCreated map[string]metav1.Time) []stokerv1alpha1.DiscoveredGateway {
 	log := logf.FromContext(ctx)
 
 	cmName := fmt.Sprintf("stoker-status-%s", gs.Name)
@@ -146,6 +164,12 @@ func (r *GatewaySyncReconciler) collectGatewayStatus(ctx context.Context, gs *st
 	// The agent writes status keyed by its GATEWAY_NAME env, which defaults to the
 	// pod name when unset. Look up by PodName first, then fall back to Name.
 	for i := range gateways {
+		// A pod without a sidecar has no agent, so any entry under its name
+		// belongs to some earlier pod. Keep MissingSidecar.
+		if gateways[i].SyncStatus == stokertypes.SyncStatusMissingSidecar {
+			continue
+		}
+
 		statusJSON, ok := cm.Data[gateways[i].PodName]
 		if !ok {
 			statusJSON, ok = cm.Data[gateways[i].Name]
@@ -158,6 +182,17 @@ func (r *GatewaySyncReconciler) collectGatewayStatus(ctx context.Context, gs *st
 		if err := json.Unmarshal([]byte(statusJSON), &status); err != nil {
 			log.Error(err, "failed to unmarshal gateway status", "gateway", gateways[i].Name)
 			continue
+		}
+
+		// Ignore an entry written before the current pod existed: it was left
+		// behind by a previous pod with the same name.
+		if created, ok := podCreated[gateways[i].PodName]; ok && !created.IsZero() && status.LastSyncTime != "" {
+			if t, err := time.Parse(time.RFC3339, status.LastSyncTime); err == nil && t.Before(created.Time) {
+				log.Info("ignoring gateway status written before the pod was created",
+					"pod", gateways[i].PodName, "lastSyncTime", status.LastSyncTime,
+					"podCreated", created.UTC().Format(time.RFC3339), "syncedRef", status.SyncedRef)
+				continue
+			}
 		}
 
 		// Map status fields onto DiscoveredGateway
@@ -198,11 +233,15 @@ func (r *GatewaySyncReconciler) updateAllGatewaysSyncedCondition(ctx context.Con
 
 	syncedCount := 0
 	missingSidecarCount := 0
+	behindCount := 0
 	for _, gw := range gs.Status.DiscoveredGateways {
-		if gw.SyncStatus == stokertypes.SyncStatusSynced {
+		switch {
+		case gatewayInSync(gs, &gw):
 			syncedCount++
-		}
-		if gw.SyncStatus == stokertypes.SyncStatusMissingSidecar {
+		case gw.SyncStatus == stokertypes.SyncStatusSynced:
+			// The agent says Synced, but to a commit other than the desired one.
+			behindCount++
+		case gw.SyncStatus == stokertypes.SyncStatusMissingSidecar:
 			missingSidecarCount++
 		}
 	}
@@ -213,8 +252,15 @@ func (r *GatewaySyncReconciler) updateAllGatewaysSyncedCondition(ctx context.Con
 			conditions.ReasonSyncSucceeded, message)
 	} else {
 		message := fmt.Sprintf("%d/%d synced", syncedCount, totalGateways)
+		var notes []string
 		if missingSidecarCount > 0 {
-			message = fmt.Sprintf("%d/%d synced (%d missing sidecar)", syncedCount, totalGateways, missingSidecarCount)
+			notes = append(notes, fmt.Sprintf("%d missing sidecar", missingSidecarCount))
+		}
+		if behindCount > 0 {
+			notes = append(notes, fmt.Sprintf("%d on an older commit", behindCount))
+		}
+		if len(notes) > 0 {
+			message = fmt.Sprintf("%s (%s)", message, strings.Join(notes, ", "))
 		}
 		r.setCondition(ctx, gs, conditions.TypeAllGatewaysSynced, metav1.ConditionFalse,
 			conditions.ReasonSyncInProgress, message)
@@ -228,6 +274,22 @@ func (r *GatewaySyncReconciler) updateAllGatewaysSyncedCondition(ctx context.Con
 		r.setCondition(ctx, gs, conditions.TypeSidecarInjected, metav1.ConditionTrue,
 			conditions.ReasonSidecarPresent, "All gateways have stoker-agent sidecar")
 	}
+}
+
+// gatewayInSync reports whether a gateway is synced to the commit the CR currently
+// wants. The agent's own SyncStatus is relative to whatever commit it last applied,
+// so Synced alone is not enough: the synced commit must also match
+// status.lastSyncCommit (#186). When the desired commit is not yet known, the
+// agent's SyncStatus is trusted as before.
+func gatewayInSync(gs *stokerv1alpha1.GatewaySync, gw *stokerv1alpha1.DiscoveredGateway) bool {
+	if gw.SyncStatus != stokertypes.SyncStatusSynced {
+		return false
+	}
+	desired := gs.Status.LastSyncCommit
+	if desired == "" {
+		return true
+	}
+	return strings.EqualFold(gw.SyncedCommit, desired)
 }
 
 // updateReadyCondition sets the Ready condition based on RefResolved, ProfilesValid, and AllGatewaysSynced.

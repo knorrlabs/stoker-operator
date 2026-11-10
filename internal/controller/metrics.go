@@ -187,7 +187,7 @@ func observeGatewayMetrics(gs *stokerv1alpha1.GatewaySync) {
 	syncedCount := 0
 	missingSidecarCount := 0
 	for _, gw := range gs.Status.DiscoveredGateways {
-		if gw.SyncStatus == stokertypes.SyncStatusSynced {
+		if gatewayInSync(gs, &gw) {
 			syncedCount++
 		}
 		if gw.SyncStatus == stokertypes.SyncStatusMissingSidecar {
