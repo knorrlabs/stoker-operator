@@ -120,6 +120,16 @@ func createAnnotatedPod(ctx context.Context, name string, annotations map[string
 	Expect(k8sClient.Status().Update(ctx, pod)).To(Succeed())
 }
 
+// findCondition returns the condition of the given type, or nil.
+func findCondition(conds []metav1.Condition, condType string) *metav1.Condition {
+	for i := range conds {
+		if conds[i].Type == condType {
+			return &conds[i]
+		}
+	}
+	return nil
+}
+
 // helper to run through the full reconcile cycle (finalizer + ref resolution) and return
 func reconcileToSteadyState(ctx context.Context, nn types.NamespacedName, r *GatewaySyncReconciler) {
 	// Reconcile 1: add finalizer
@@ -624,7 +634,7 @@ var _ = Describe("GatewaySync Controller", func() {
 				SyncStatus:       stokertypes.SyncStatusSynced,
 				SyncedCommit:     "def456",
 				SyncedRef:        "main",
-				LastSyncTime:     "2026-01-15T10:30:00Z",
+				LastSyncTime:     time.Now().UTC().Add(time.Minute).Format(time.RFC3339),
 				LastSyncDuration: "2.5s",
 				AgentVersion:     "1.2.3",
 				FilesChanged:     3,
@@ -796,6 +806,126 @@ var _ = Describe("GatewaySync Controller", func() {
 			Expect(allSyncedCond).NotTo(BeNil())
 			Expect(allSyncedCond.Status).To(Equal(metav1.ConditionFalse))
 			Expect(allSyncedCond.Message).To(Equal("1/2 synced"))
+		})
+
+		// #186: a gateway pod recreated without an agent must not inherit the
+		// previous pod's Synced entry from the status ConfigMap.
+		It("should ignore a status entry written before the current pod was created", func() {
+			createAnnotatedPod(ctx, "gw-cond-1", map[string]string{
+				stokertypes.AnnotationCRName:      resourceName,
+				stokertypes.AnnotationGatewayName: "gw1",
+			})
+
+			statusJSON, _ := json.Marshal(stokertypes.GatewayStatus{
+				SyncStatus:   stokertypes.SyncStatusSynced,
+				SyncedCommit: "abc123",
+				SyncedRef:    "main",
+				LastSyncTime: time.Now().UTC().Add(-24 * time.Hour).Format(time.RFC3339),
+			})
+			statusCM := &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      fmt.Sprintf("stoker-status-%s", resourceName),
+					Namespace: "default",
+				},
+				Data: map[string]string{"gw1": string(statusJSON)},
+			}
+			Expect(k8sClient.Create(ctx, statusCM)).To(Succeed())
+
+			r := newReconciler(&fakeGitClient{result: git.Result{Commit: "abc123", Ref: "main"}})
+			reconcileToSteadyState(ctx, nn, r)
+
+			cr := &stokerv1alpha1.GatewaySync{}
+			Expect(k8sClient.Get(ctx, nn, cr)).To(Succeed())
+			Expect(cr.Status.DiscoveredGateways).To(HaveLen(1))
+			gw := cr.Status.DiscoveredGateways[0]
+			Expect(gw.SyncStatus).To(Equal(stokertypes.SyncStatusPending))
+			Expect(gw.SyncedCommit).To(BeEmpty())
+			Expect(gw.LastSyncTime).To(BeNil())
+
+			allSynced := findCondition(cr.Status.Conditions, conditions.TypeAllGatewaysSynced)
+			Expect(allSynced).NotTo(BeNil())
+			Expect(allSynced.Status).To(Equal(metav1.ConditionFalse))
+			Expect(allSynced.Message).To(Equal("0/1 synced"))
+			Expect(findCondition(cr.Status.Conditions, conditions.TypeReady).Status).To(Equal(metav1.ConditionFalse))
+		})
+
+		// #186: Synced is relative to whatever commit the agent last applied, so a
+		// gateway still on an older commit must not count toward N/N synced.
+		It("should not count a gateway synced to an older commit", func() {
+			createAnnotatedPod(ctx, "gw-cond-1", map[string]string{
+				stokertypes.AnnotationCRName:      resourceName,
+				stokertypes.AnnotationGatewayName: "gw1",
+			})
+			createAnnotatedPod(ctx, "gw-cond-2", map[string]string{
+				stokertypes.AnnotationCRName:      resourceName,
+				stokertypes.AnnotationGatewayName: "gw2",
+			})
+
+			now := time.Now().UTC().Add(time.Minute).Format(time.RFC3339)
+			current, _ := json.Marshal(stokertypes.GatewayStatus{
+				SyncStatus: stokertypes.SyncStatusSynced, SyncedCommit: "abc123", SyncedRef: "v2", LastSyncTime: now,
+			})
+			older, _ := json.Marshal(stokertypes.GatewayStatus{
+				SyncStatus: stokertypes.SyncStatusSynced, SyncedCommit: "old999", SyncedRef: "v1", LastSyncTime: now,
+			})
+			statusCM := &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      fmt.Sprintf("stoker-status-%s", resourceName),
+					Namespace: "default",
+				},
+				Data: map[string]string{"gw1": string(current), "gw2": string(older)},
+			}
+			Expect(k8sClient.Create(ctx, statusCM)).To(Succeed())
+
+			r := newReconciler(&fakeGitClient{result: git.Result{Commit: "abc123", Ref: "v2"}})
+			reconcileToSteadyState(ctx, nn, r)
+
+			cr := &stokerv1alpha1.GatewaySync{}
+			Expect(k8sClient.Get(ctx, nn, cr)).To(Succeed())
+
+			allSynced := findCondition(cr.Status.Conditions, conditions.TypeAllGatewaysSynced)
+			Expect(allSynced).NotTo(BeNil())
+			Expect(allSynced.Status).To(Equal(metav1.ConditionFalse))
+			Expect(allSynced.Message).To(Equal("1/2 synced (1 on an older commit)"))
+			Expect(findCondition(cr.Status.Conditions, conditions.TypeReady).Status).To(Equal(metav1.ConditionFalse))
+		})
+
+		// #186: a pod with no stoker-agent sidecar has no agent, so a Synced entry
+		// under its name came from an earlier pod and must not hide MissingSidecar.
+		It("should keep MissingSidecar even when a Synced entry exists for the pod", func() {
+			createAnnotatedPod(ctx, "gw-cond-1", map[string]string{
+				stokertypes.AnnotationCRName:      resourceName,
+				stokertypes.AnnotationGatewayName: "gw1",
+				stokertypes.AnnotationInject:      "true",
+			})
+
+			statusJSON, _ := json.Marshal(stokertypes.GatewayStatus{
+				SyncStatus:   stokertypes.SyncStatusSynced,
+				SyncedCommit: "abc123",
+				LastSyncTime: time.Now().UTC().Add(time.Minute).Format(time.RFC3339),
+			})
+			statusCM := &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      fmt.Sprintf("stoker-status-%s", resourceName),
+					Namespace: "default",
+				},
+				Data: map[string]string{"gw1": string(statusJSON)},
+			}
+			Expect(k8sClient.Create(ctx, statusCM)).To(Succeed())
+
+			r := newReconciler(&fakeGitClient{result: git.Result{Commit: "abc123", Ref: "main"}})
+			reconcileToSteadyState(ctx, nn, r)
+
+			cr := &stokerv1alpha1.GatewaySync{}
+			Expect(k8sClient.Get(ctx, nn, cr)).To(Succeed())
+			Expect(cr.Status.DiscoveredGateways).To(HaveLen(1))
+			Expect(cr.Status.DiscoveredGateways[0].SyncStatus).To(Equal(stokertypes.SyncStatusMissingSidecar))
+
+			allSynced := findCondition(cr.Status.Conditions, conditions.TypeAllGatewaysSynced)
+			Expect(allSynced.Status).To(Equal(metav1.ConditionFalse))
+			Expect(allSynced.Message).To(Equal("0/1 synced (1 missing sidecar)"))
+			Expect(findCondition(cr.Status.Conditions, conditions.TypeSidecarInjected).Status).To(Equal(metav1.ConditionFalse))
+			Expect(findCondition(cr.Status.Conditions, conditions.TypeReady).Status).To(Equal(metav1.ConditionFalse))
 		})
 
 		It("should set AllGatewaysSynced=False with NoGateways when no pods found", func() {
