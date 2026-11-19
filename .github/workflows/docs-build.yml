@@ -1,15 +1,43 @@
 name: Build Docs
 
+# Runs on every pull request so `docs-build` can be a required check: a
+# path-filtered workflow never reports on PRs outside its paths, and a required
+# check that never reports blocks the PR forever. The build job skips itself
+# when nothing under docs/ changed, and a skipped job counts as passing.
+
 on:
   pull_request:
-    paths:
-      - "docs/**"
 
 permissions:
   contents: read
 
 jobs:
+  changes:
+    name: docs-changes
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      docs: ${{ steps.filter.outputs.docs }}
+    steps:
+      - name: Detect docs changes
+        id: filter
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          if gh api --paginate "repos/$REPO/pulls/$PR/files" --jq '.[].filename' \
+              | grep -qE '^(docs/|\.github/workflows/docs-build\.yml$)'; then
+            echo "docs=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "docs=false" >> "$GITHUB_OUTPUT"
+          fi
+
   build:
+    name: docs-build
+    needs: changes
+    if: needs.changes.outputs.docs == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

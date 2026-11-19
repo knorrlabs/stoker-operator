@@ -17,9 +17,10 @@
       "groupName": "kubernetes"
     },
     {
-      "description": "go-git is core to cloning; e2e does not run on PRs, so review these deliberately.",
+      "description": "go-git is core to cloning; e2e does not run on PRs, so review these deliberately and never automerge.",
       "matchPackageNames": ["github.com/go-git/go-git/**"],
-      "addLabels": ["needs-e2e"]
+      "addLabels": ["needs-e2e"],
+      "automerge": false
     }
   ]
 }
