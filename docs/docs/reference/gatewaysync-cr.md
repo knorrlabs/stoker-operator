@@ -413,7 +413,9 @@ Gateways progress through these sync states:
 
 A gateway can also enter the **MissingSidecar** state when the stoker-agent sidecar container is absent from the discovered pod. This is not a progression from the states above; it indicates the mutating webhook did not inject the sidecar (e.g., the pod predates the webhook or the `stoker.io/inject` annotation is missing).
 
-The `AllGatewaysSynced` condition is `True` only when all discovered gateways report `Synced`.
+The `AllGatewaysSynced` condition is `True` only when all discovered gateways report `Synced` **at the commit the CR currently wants** (`status.lastSyncCommit`). A gateway whose agent reports `Synced` at an older commit is counted separately, and the condition message says so, for example `0/2 synced (2 on an older commit)` for the few seconds after a new commit while agents catch up.
+
+The controller also ignores a status entry that cannot belong to the current pod: one whose `lastSyncTime` is earlier than the pod's `creationTimestamp` (left by a previous pod with the same name), or any entry for a pod without the `stoker-agent` sidecar. Such a gateway shows `Pending` or `MissingSidecar` until its own agent reports.
 
 ### Conditions
 
@@ -421,7 +423,7 @@ The `AllGatewaysSynced` condition is `True` only when all discovered gateways re
 |------|-------------|
 | `RefResolved` | The controller successfully resolved the git ref to a commit SHA |
 | `ProfilesValid` | All embedded profiles pass validation (no path traversal, no absolute paths) |
-| `AllGatewaysSynced` | All discovered gateway pods report `Synced` status |
+| `AllGatewaysSynced` | All discovered gateway pods report `Synced` status at the desired commit (`status.lastSyncCommit`) |
 | `SidecarInjected` | All discovered gateway pods have the stoker-agent sidecar container |
 | `SSHHostKeyVerification` | SSH host key verification status: `True` when `knownHosts` is configured, `False` (warning) when SSH auth is used without it. Only present on CRs using SSH key authentication. |
 | `Ready` | `RefResolved`, `ProfilesValid`, and `AllGatewaysSynced` are all `True` |

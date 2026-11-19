@@ -99,6 +99,8 @@ kubectl logs -n stoker-system deploy/stoker-stoker-operator-controller-manager |
 - **Scan API failure:** check gateway port and TLS settings match `spec.gateway.port` and `spec.gateway.tls`
 - **API key format:** the Ignition API key must be in `name:secret` format (e.g., `ignition-api-key:CYCSdRg...`), not just the secret portion
 - **Gateway not ready:** the Ignition gateway may still be starting up
+- **On an older commit:** the message ends in `(N on an older commit)`. Those agents report `Synced`, but to a commit other than `status.lastSyncCommit`. This is normal for a few seconds after a new commit; if it persists, the agent is failing to fetch or sync the new commit, so check its logs (and the backoff note below)
+- **Pod recreated under the same name:** a gateway shows `Pending` even though the status ConfigMap has a `Synced` entry for it, and the controller logs `ignoring gateway status written before the pod was created`. The entry belongs to the previous pod; it clears once the new pod's agent completes its first sync
 - **Agent backoff:** on consecutive git-fetch or sync failures, the agent backs off exponentially (30s → 60s → 120s → 240s → 5min cap). While backing off, incoming sync triggers are dropped and the agent records `stoker_agent_sync_skipped_total{reason="backoff"}`. The backoff resets automatically on the next successful sync. Check agent logs for `backing off` messages to confirm this state.
 
 ```bash

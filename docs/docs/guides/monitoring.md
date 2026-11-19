@@ -20,7 +20,7 @@ The controller exposes metrics on port 8443 (the same HTTPS endpoint used by con
 | `stoker_controller_reconcile_total` | Counter | `name`, `namespace`, `result` | Total reconciles by result (`success`, `requeue`, `error`) |
 | `stoker_controller_ref_resolve_duration_seconds` | Histogram | `name`, `namespace` | Time to resolve a git ref via `ls-remote` |
 | `stoker_controller_gateways_discovered` | Gauge | `name`, `namespace` | Number of gateway pods found for a CR |
-| `stoker_controller_gateways_synced` | Gauge | `name`, `namespace` | Number of gateways reporting Synced status |
+| `stoker_controller_gateways_synced` | Gauge | `name`, `namespace` | Number of gateways reporting Synced status at the desired commit |
 | `stoker_controller_cr_ready` | Gauge | `name`, `namespace` | Whether the CR is in Ready condition (1/0) |
 | `stoker_controller_cr_info` | Gauge | `name`, `namespace`, `git_repo`, `git_ref`, `auth_type`, `polling_interval` | Info metric (always 1) for PromQL joins |
 | `stoker_controller_cr_paused` | Gauge | `name`, `namespace` | Whether the CR is paused (1/0) |
