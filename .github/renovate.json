@@ -1,8 +1,8 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "description": [
-    "Renovate covers the dependencies it extracts: direct Go modules and the packages declared in docs/package.json.",
-    "Indirect Go modules and lockfile-only transitive npm packages are deliberately NOT Renovate's job here. Renovate's gomod manager skips `// indirect` requirements unless a matching tool directive exists, and its npm manager reads package.json rather than the lockfile, so neither surface is ever extracted. Dependabot security updates cover both, which is why both bots run on this repo. Do not add security:gomodIndirectSecurityUpdates to close the Go half: it would put Renovate back onto the one surface Dependabot owns cleanly and race it there."
+    "Renovate is this repo's only dependency bot; Dependabot security updates are turned off in Settings (Dependabot alerts stay on, Renovate reads them).",
+    "Direct Go modules and docs/package.json are extracted directly. Vulnerable indirect Go modules come from security:gomodIndirectSecurityUpdates in the shared preset, and lockfile-only npm packages in docs/ from the preset's weekly lockFileMaintenance."
   ],
   "extends": ["github>knorrlabs/renovate-config"],
   "packageRules": [
@@ -17,9 +17,10 @@
       "groupName": "kubernetes"
     },
     {
-      "description": "go-git is core to cloning; e2e does not run on PRs, so review these deliberately.",
+      "description": "go-git is core to cloning; e2e does not run on PRs, so review these deliberately and never automerge.",
       "matchPackageNames": ["github.com/go-git/go-git/**"],
-      "addLabels": ["needs-e2e"]
+      "addLabels": ["needs-e2e"],
+      "automerge": false
     }
   ]
 }
