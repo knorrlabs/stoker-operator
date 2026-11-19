@@ -38,9 +38,10 @@ Each Stoker release pins a set of Kubernetes client libraries (`client-go`, `con
 | Stoker version | Kubernetes libraries | Officially supported API server |
 | --- | --- | --- |
 | `0.5.1` and earlier | pre-1.36 | matches that release's libraries |
-| `0.5.2` to `0.6.x` | k8s 1.36 (`controller-runtime 0.24`) | **k8s 1.35 to 1.37** |
+| `0.5.2` to `0.8.2` | k8s 1.36 (`controller-runtime 0.24`) | **k8s 1.35 to 1.37** |
+| `0.8.3` and later | k8s 1.37 (`controller-runtime 0.24`) | **k8s 1.36 to 1.38** |
 
-**Guidance for `0.6.x`: run the operator on Kubernetes 1.35 or newer.**
+**Guidance for `0.8.3` and later: run the operator on Kubernetes 1.36 or newer.**
 
 :::note Older clusters
 The APIs Stoker actually calls are long-stable: CRD `v1`, core pods, `rbac/v1`, and `coordination/v1` leases. A cluster older than 1.35 may work in practice, but it is outside the officially supported skew, so treat it as unsupported. Separately, native sidecar injection requires Kubernetes **1.28+** regardless of version (it relies on `initContainer` with `restartPolicy: Always`).

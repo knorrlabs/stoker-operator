@@ -6,6 +6,50 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 > **Upgrading?** See the [Upgrading guide](https://knorrlabs.github.io/stoker-operator/upgrading) for the version policy, Kubernetes compatibility matrix, the CRD-on-`helm upgrade` caveat, and GitOps / ArgoCD specifics.
 
+## [v0.8.4] - 2026-11-19
+
+Security and status-accuracy release. The controller no longer reports a gateway as synced on the strength of a status entry left behind by a previous pod, or while the gateway is still on an older commit. No CRD or chart changes.
+
+### Fixed
+
+- **Stale gateway status is ignored.** The `stoker-status-{crName}` ConfigMap is keyed by pod name, so a pod recreated under the same name (a StatefulSet restart, for example) used to inherit its predecessor's `Synced` entry until its own agent reported. The controller now ignores any entry whose `lastSyncTime` is before the current pod's `creationTimestamp`, and any entry for a pod discovered without a `stoker-agent` sidecar. Such gateways show `Pending` (or `MissingSidecar`) until their agent reports (#186, #275)
+- **`AllGatewaysSynced` now requires the desired commit.** A gateway counts as synced only when its agent reports `Synced` *and* its `syncedCommit` matches `status.lastSyncCommit`. While an agent catches up after a new commit, the condition reads, for example, `0/1 synced (1 on an older commit)` instead of `True`, so `Ready` no longer flips to `True` before every gateway has the new config. The `stoker_controller_gateways_synced` metric follows the same rule (#275)
+
+### Security
+
+- **`golang.org/x/crypto` updated to v0.59.0** for [GO-2026-5932](https://pkg.go.dev/vuln/GO-2026-5932) (#276)
+- **OpenTelemetry Go updated to v1.47.0**: `otel`, `otel/trace` and `otel/sdk` for [GHSA-q7gw-24fr-5p69](https://github.com/advisories/GHSA-q7gw-24fr-5p69) (#279, #280), and the OTLP trace exporters (`otlptrace`, `otlptracegrpc`, indirect through the Kubernetes libraries) from v1.40.0 for [GO-2026-6505](https://pkg.go.dev/vuln/GO-2026-6505), which govulncheck reports as reachable (#286)
+- **`cel-go` updated to v0.29.2** for [GHSA-gcjh-h69q-9w9g](https://github.com/advisories/GHSA-gcjh-h69q-9w9g). Merged after v0.8.3 was tagged, so this is the first release that ships it (#239)
+- Release images build with Go 1.26.11; `govulncheck -mode=binary` reports no vulnerabilities in the controller or agent binaries
+
+### Infrastructure
+
+- `tidwall/sjson` v1.2.9 (#278)
+- Renovate: dropped a dead indirect-gomod rule and documented the Renovate/Dependabot split (#238)
+- Documentation site dependencies updated to v19.3.1 (#242, #267)
+
+### Known issues
+
+Both are present in v0.8.3 and earlier and will be fixed in a follow-up release.
+
+- **Orphaned files are not removed under a mapping destination that ends in `/`** (for example `destination: "projects/"`, as in `config/samples`). Files deleted from git stay on the gateway. Workaround: write destinations without the trailing slash (`destination: "projects"`)
+- **An optional mapping whose source directory disappears from the repo fails the sync.** If every file under a non-`required` mapping's `source` is deleted, git drops the directory and the agent fails with `lstat ...: no such file or directory`, backing off until the directory exists again. Workaround: keep a placeholder file (for example `.gitkeep`, which the default `excludePatterns` skip) in mapped source directories
+
+## [v0.8.3] - 2026-09-13
+
+Dependency release. No functional or API changes.
+
+### Changed
+
+- **Kubernetes libraries updated to v0.37** (`client-go`, `api`, `apimachinery`), moving the officially supported API server range to 1.36 through 1.38. See the [compatibility matrix](https://knorrlabs.github.io/stoker-operator/upgrading#kubernetes-version-compatibility) (#228)
+
+- `google.golang.org/grpc` 1.83.2 (#235) and `github.com/prometheus/client_golang` v1.24.1 (#233)
+
+### Infrastructure
+
+- Ginkgo/Gomega v1.43.0 (#229), `colord` 2.10.0 in the documentation site (#236)
+- CodeQL scanning restored for Go and Actions (#232), and three workflows now declare explicit `contents: read` permissions (#231)
+
 ## [v0.8.2] - 2026-09-04
 
 Documentation dependency security release. No functional or API changes: the controller, the agent, and the chart behave exactly as in v0.8.1. Nothing under `docs/` is built into the operator or agent images.
