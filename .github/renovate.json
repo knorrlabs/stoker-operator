@@ -4,33 +4,22 @@
     "Renovate is this repo's only dependency bot; Dependabot security updates are turned off in Settings (Dependabot alerts stay on, Renovate reads them).",
     "Direct Go modules and docs/package.json are extracted directly. Vulnerable indirect Go modules come from security:gomodIndirectSecurityUpdates in the shared preset, and lockfile-only npm packages in docs/ from the preset's weekly lockFileMaintenance."
   ],
-  "extends": [
-    "github>knorrlabs/renovate-config"
-  ],
+  "extends": ["github>knorrlabs/renovate-config"],
   "packageRules": [
     {
       "description": "Docs site is not shipped with the operator; group its churn into one PR.",
-      "matchFileNames": [
-        "docs/**"
-      ],
+      "matchFileNames": ["docs/**"],
       "groupName": "docs dependencies"
     },
     {
       "description": "Kubernetes libraries must version in lockstep.",
-      "matchPackageNames": [
-        "k8s.io/**",
-        "sigs.k8s.io/**"
-      ],
+      "matchPackageNames": ["k8s.io/**", "sigs.k8s.io/**"],
       "groupName": "kubernetes"
     },
     {
       "description": "go-git is core to cloning; e2e does not run on PRs, so review these deliberately and never automerge.",
-      "matchPackageNames": [
-        "github.com/go-git/go-git/**"
-      ],
-      "addLabels": [
-        "needs-e2e"
-      ],
+      "matchPackageNames": ["github.com/go-git/go-git/**"],
+      "addLabels": ["needs-e2e"],
       "automerge": false
     }
   ]
