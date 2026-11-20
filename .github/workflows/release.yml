@@ -10,6 +10,8 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
+  # renovate: datasource=github-releases depName=aquasecurity/trivy
+  SCANNER_VERSION: v0.76.2
 
 jobs:
   build-images:
@@ -62,6 +64,18 @@ jobs:
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image_name }}:buildcache-${{ matrix.arch }},mode=max
           # A cached apk layer kept 0.8.3's vulnerable openssh until the base image changed (#277).
           no-cache-filters: ${{ matrix.no_cache_filters }}
+
+      - name: Scan pushed image
+        # Pinned by SHA: this action's tags were hijacked in March 2026.
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image_name }}@${{ steps.build.outputs.digest }}
+          version: ${{ env.SCANNER_VERSION }}
+          scanners: vuln
+          vuln-type: os,library
+          ignore-unfixed: true
+          severity: HIGH,CRITICAL
+          exit-code: "1"
 
       - name: Export digest
         run: |
