@@ -7,6 +7,7 @@ on:
   pull_request:
     paths:
       - .github/workflows/image-scan.yml
+      - hack/trivy-summary.sh
 
 permissions:
   contents: read
@@ -39,7 +40,7 @@ jobs:
           tag=$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName -q .tagName)
           echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
 
-      - name: Scan
+      - name: Scan all severities
         # Pinned by SHA: this action's tags were hijacked in March 2026.
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         env:
@@ -47,6 +48,24 @@ jobs:
         with:
           image-ref: ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:${{ steps.release.outputs.version }}
           version: ${{ env.SCANNER_VERSION }}
+          scanners: vuln
+          vuln-type: os,library
+          format: json
+          output: trivy-all.json
+
+      - name: Write run summary
+        env:
+          HEADING: ${{ matrix.image_name }} ${{ steps.release.outputs.version }} ${{ matrix.platform }}
+        run: hack/trivy-summary.sh trivy-all.json "$HEADING" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Scan
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        env:
+          TRIVY_PLATFORM: ${{ matrix.platform }}
+        with:
+          image-ref: ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:${{ steps.release.outputs.version }}
+          version: ${{ env.SCANNER_VERSION }}
+          skip-setup-trivy: true
           scanners: vuln
           vuln-type: os,library
           ignore-unfixed: true
