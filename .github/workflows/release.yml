@@ -10,6 +10,8 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
+  # renovate: datasource=github-releases depName=aquasecurity/trivy
+  SCANNER_VERSION: v0.76.2
 
 jobs:
   build-images:
@@ -22,6 +24,7 @@ jobs:
             file: Dockerfile
           - image_name: stoker-agent
             file: Dockerfile.agent
+            no_cache_filters: runtime
           - arch: amd64
             runner: ubuntu-latest
             platform: linux/amd64
@@ -59,6 +62,20 @@ jobs:
           outputs: type=image,name=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image_name }},push-by-digest=true,name-canonical=true,push=true
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image_name }}:buildcache-${{ matrix.arch }}
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image_name }}:buildcache-${{ matrix.arch }},mode=max
+          # A cached apk layer kept 0.8.3's vulnerable openssh until the base image changed (#277).
+          no-cache-filters: ${{ matrix.no_cache_filters }}
+
+      - name: Scan pushed image
+        # Pinned by SHA: this action's tags were hijacked in March 2026.
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image_name }}@${{ steps.build.outputs.digest }}
+          version: ${{ env.SCANNER_VERSION }}
+          scanners: vuln
+          vuln-type: os,library
+          ignore-unfixed: true
+          severity: HIGH,CRITICAL
+          exit-code: "1"
 
       - name: Export digest
         run: |
