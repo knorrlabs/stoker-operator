@@ -64,7 +64,7 @@ make helm-sync    # copy CRDs to Helm chart + verify RBAC parity
 
 - **Linter:** golangci-lint v2 (config in `.golangci.yml`). Key linters: `revive`, `staticcheck`, `govet`, `errcheck`, `misspell`.
 - **Formatting:** `gofmt` and `goimports` are enforced by the linter.
-- **Commit messages:** Short and descriptive, following the style in git history (e.g., `add sidecar injection webhook`, `fix reconcile storm on status patches`).
+- **Commit messages and PR titles:** [Conventional Commits](https://www.conventionalcommits.org/), `type(scope): subject` (e.g., `feat(chart): ship HA-friendly controller defaults`, `fix(deps): bump cel-go to v0.29.2`). The PR title sets the PR's label and its section in the release notes, through `.github/workflows/pr-labels.yml`.
 
 ## Pull Requests
 
