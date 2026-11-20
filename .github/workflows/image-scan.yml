@@ -37,7 +37,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           tag=$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName -q .tagName)
-          echo "version=0.8.3" >> "$GITHUB_OUTPUT"
+          echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
 
       - name: Scan
         # Pinned by SHA: this action's tags were hijacked in March 2026.
