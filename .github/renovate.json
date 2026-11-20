@@ -2,9 +2,10 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "description": [
     "Renovate is this repo's only dependency bot; Dependabot security updates are turned off in Settings (Dependabot alerts stay on, Renovate reads them).",
-    "Direct Go modules and docs/package.json are extracted directly. Vulnerable indirect Go modules come from security:gomodIndirectSecurityUpdates in the shared preset, and lockfile-only npm packages in docs/ from the preset's weekly lockFileMaintenance."
+    "Direct Go modules and docs/package.json are extracted directly. Vulnerable indirect Go modules come from security:gomodIndirectSecurityUpdates in the shared preset, and lockfile-only npm packages in docs/ from the preset's weekly lockFileMaintenance.",
+    "The Trivy binary pinned in workflow SCANNER_VERSION env vars comes from customManagers:githubActionsVersions, via its `# renovate:` comment."
   ],
-  "extends": ["github>knorrlabs/renovate-config"],
+  "extends": ["github>knorrlabs/renovate-config", "customManagers:githubActionsVersions"],
   "packageRules": [
     {
       "description": "Docs site is not shipped with the operator; group its churn into one PR.",
