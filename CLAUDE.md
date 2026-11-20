@@ -85,6 +85,25 @@ HTTP server on port 9444 (`POST /webhook/{namespace}/{crName}`). Auto-detects pa
 - **Predicate filter:** Controller watches GatewaySync CRs with a custom predicate that passes on generation change OR annotation change (for webhook-triggered reconciles)
 - **Git auth:** Controller resolves secrets for `ls-remote`; agent reads from hardcoded mount paths `/etc/stoker/git-credentials` and `/etc/stoker/api-key`. For GitHub App auth, the controller exchanges the PEM for an installation token, caches it, and writes it to the Secret `stoker-github-token-{crName}`, which the webhook mounts into the agent at `/etc/stoker/git-token/token` (PEM never mounted into agent pods).
 
+## Pull Request Titles
+
+Write every PR title as a Conventional Commit, `type(scope)!: subject` with the scope and `!` optional, such as `feat(chart): ship HA-friendly controller defaults`. The generated release notes list PRs by title, and `.github/workflows/pr-labels.yml` labels each PR from it:
+
+| Title | Label | Release notes section |
+|-------|-------|-----------------------|
+| any type with the `deps` scope, such as `fix(deps):` | `dependencies` | Dependencies |
+| `feat` | `enhancement` | Features |
+| `fix` | `bug` | Bug Fixes |
+| `docs` | `documentation` | Documentation |
+| `build`, `chore`, `ci`, `perf`, `refactor`, `revert`, `style`, `test` | `maintenance` | Maintenance |
+
+- Renovate's `security` label puts a PR under Security, ahead of every row above.
+- Any other title gets no label and lands under Other Changes.
+- To move a PR to another section, retitle it. The workflow reruns on edit and swaps its label.
+- Use the `deps` scope only for dependency updates.
+- Branch names don't affect labels.
+- Write commit messages in the same form: a single-commit PR's squash commit takes the commit message, not the PR title.
+
 ## Code Generation Workflow
 
 After modifying types in `api/v1alpha1/`:
