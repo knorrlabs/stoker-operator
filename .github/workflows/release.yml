@@ -10,8 +10,6 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  # renovate: datasource=github-releases depName=aquasecurity/trivy
-  SCANNER_VERSION: v0.76.2
 
 jobs:
   build-images:
@@ -66,16 +64,11 @@ jobs:
           no-cache-filters: ${{ matrix.no_cache_filters }}
 
       - name: Scan pushed image
-        # Pinned by SHA: this action's tags were hijacked in March 2026.
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        uses: ./.github/actions/trivy-scan
         with:
           image-ref: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image_name }}@${{ steps.build.outputs.digest }}
-          version: ${{ env.SCANNER_VERSION }}
-          scanners: vuln
-          vuln-type: os,library
-          ignore-unfixed: true
-          severity: HIGH,CRITICAL
-          exit-code: "1"
+          platform: ${{ matrix.platform }}
+          heading: ${{ matrix.image_name }} ${{ steps.version.outputs.version }} ${{ matrix.platform }}
 
       - name: Export digest
         run: |
