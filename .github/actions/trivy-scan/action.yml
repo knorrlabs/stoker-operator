@@ -1,0 +1,61 @@
+name: Trivy image scan
+description: >-
+  Scan an image with Trivy, write per-severity counts to the job summary and log,
+  then fail on any fixable HIGH or CRITICAL vulnerability.
+
+inputs:
+  image-ref:
+    description: Image to scan, by tag or digest.
+    required: true
+  platform:
+    description: Platform to scan, such as linux/amd64.
+    required: true
+  heading:
+    description: Heading for this image's table in the job summary.
+    required: true
+  sarif-output:
+    description: When set, the gate scan writes SARIF to this path instead of a table to the log.
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Scan all severities
+      # Pinned by SHA: this action's tags were hijacked in March 2026.
+      uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+      env:
+        # renovate: datasource=github-releases depName=aquasecurity/trivy
+        SCANNER_VERSION: v0.76.2
+        TRIVY_PLATFORM: ${{ inputs.platform }}
+      with:
+        image-ref: ${{ inputs.image-ref }}
+        version: ${{ env.SCANNER_VERSION }}
+        scanners: vuln
+        vuln-type: os,library
+        format: json
+        output: trivy-all.json
+
+    - name: Write summary
+      shell: bash
+      env:
+        HEADING: ${{ inputs.heading }}
+        SUMMARY_JQ: ${{ github.action_path }}/summary.jq
+      run: jq -r --arg heading "$HEADING" -f "$SUMMARY_JQ" trivy-all.json | tee -a "$GITHUB_STEP_SUMMARY"
+
+    - name: Gate on fixable HIGH and CRITICAL
+      uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+      env:
+        TRIVY_PLATFORM: ${{ inputs.platform }}
+      with:
+        image-ref: ${{ inputs.image-ref }}
+        skip-setup-trivy: true
+        cache: false
+        scanners: vuln
+        vuln-type: os,library
+        ignore-unfixed: true
+        severity: HIGH,CRITICAL
+        format: ${{ inputs.sarif-output != '' && 'sarif' || 'table' }}
+        output: ${{ inputs.sarif-output }}
+        limit-severities-for-sarif: true
+        exit-code: "1"

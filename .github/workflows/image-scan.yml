@@ -7,14 +7,10 @@ on:
   pull_request:
     paths:
       - .github/workflows/image-scan.yml
-      - hack/trivy-summary.sh
+      - .github/actions/trivy-scan/**
 
 permissions:
   contents: read
-
-env:
-  # renovate: datasource=github-releases depName=aquasecurity/trivy
-  SCANNER_VERSION: v0.76.2
 
 jobs:
   scan:
@@ -40,42 +36,13 @@ jobs:
           tag=$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName -q .tagName)
           echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
 
-      - name: Scan all severities
-        # Pinned by SHA: this action's tags were hijacked in March 2026.
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
-        env:
-          TRIVY_PLATFORM: ${{ matrix.platform }}
-        with:
-          image-ref: ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:${{ steps.release.outputs.version }}
-          version: ${{ env.SCANNER_VERSION }}
-          scanners: vuln
-          vuln-type: os,library
-          format: json
-          output: trivy-all.json
-
-      - name: Write run summary
-        shell: bash
-        env:
-          HEADING: ${{ matrix.image_name }} ${{ steps.release.outputs.version }} ${{ matrix.platform }}
-        run: hack/trivy-summary.sh trivy-all.json "$HEADING" | tee -a "$GITHUB_STEP_SUMMARY"
-
       - name: Scan
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
-        env:
-          TRIVY_PLATFORM: ${{ matrix.platform }}
+        uses: ./.github/actions/trivy-scan
         with:
           image-ref: ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:${{ steps.release.outputs.version }}
-          version: ${{ env.SCANNER_VERSION }}
-          skip-setup-trivy: true
-          cache: false
-          scanners: vuln
-          vuln-type: os,library
-          ignore-unfixed: true
-          severity: HIGH,CRITICAL
-          format: sarif
-          output: trivy.sarif
-          limit-severities-for-sarif: true
-          exit-code: "1"
+          platform: ${{ matrix.platform }}
+          heading: ${{ matrix.image_name }} ${{ steps.release.outputs.version }} ${{ matrix.platform }}
+          sarif-output: trivy.sarif
 
       - name: Upload to code scanning
         if: always() && hashFiles('trivy.sarif') != ''
