@@ -77,9 +77,10 @@ jobs:
           output: trivy-all.json
 
       - name: Write run summary
+        shell: bash
         env:
           HEADING: ${{ matrix.image_name }} ${{ steps.version.outputs.version }} ${{ matrix.platform }}
-        run: hack/trivy-summary.sh trivy-all.json "$HEADING" >> "$GITHUB_STEP_SUMMARY"
+        run: hack/trivy-summary.sh trivy-all.json "$HEADING" | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Scan pushed image
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
@@ -87,6 +88,7 @@ jobs:
           image-ref: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image_name }}@${{ steps.build.outputs.digest }}
           version: ${{ env.SCANNER_VERSION }}
           skip-setup-trivy: true
+          cache: false
           scanners: vuln
           vuln-type: os,library
           ignore-unfixed: true
