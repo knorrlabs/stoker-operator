@@ -10,7 +10,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.34.0
 	github.com/onsi/gomega v1.44.0
 	github.com/prometheus/client_golang v1.25.0
-	github.com/tidwall/sjson v1.2.10
+	github.com/tidwall/sjson v1.2.11
 	golang.org/x/crypto v0.59.0
 	k8s.io/api v0.37.0
 	k8s.io/apimachinery v0.37.0
@@ -84,7 +84,7 @@ require (
 	github.com/skeema/knownhosts v1.3.1 // indirect
 	github.com/spf13/cobra v1.10.2 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
-	github.com/tidwall/gjson v1.20.4 // indirect
+	github.com/tidwall/gjson v1.20.5 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.3.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
